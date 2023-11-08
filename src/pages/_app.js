@@ -1,5 +1,14 @@
-import '@/styles/globals.css'
+import "@/styles/globals.css";
 
-export default function App({ Component, pageProps }) {
-  return <Component {...pageProps} />
+import React from "react";
+import AudioContextProviderWrapper from "../../providers/AudioContextProvider";
+
+function MyApp({ Component, pageProps }) {
+  return (
+    <AudioContextProviderWrapper>
+      <Component {...pageProps} />
+    </AudioContextProviderWrapper>
+  );
 }
+
+export default MyApp;
