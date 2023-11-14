@@ -1,6 +1,6 @@
 import Head from "next/head";
 import Image from "next/image";
-import { Inter } from "next/font/google";
+import { Inter, Play } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import Keyboard from "../../components/keyboard";
 import App from "../../components/UIElements/key";
@@ -9,66 +9,144 @@ import { useState, useEffect, useRef } from "react";
 import Player from "../../classes/Player";
 const inter = Inter({ subsets: ["latin"] });
 import { useAudioContext } from "../../providers/AudioContextContext";
-
-const testTrack = {
-  notes: [
-    "C-3",
-    "D#3",
-    "G-3",
-    "C-3",
-    "D-3",
-    "D#3",
-    "C-3",
-    "D-3",
-    "D#3",
-    "C-3",
-    "D#3",
-    "G#3",
-    "C-3",
-    "G-3",
-    "C-3",
-    "G-3",
-  ],
-  type: "synth",
-  params: [],
-  effects: [{ type: "delay", val: "lots" }],
-};
+import NOTES from "../../data/notes";
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
-  const [actx, setActx] = useState(null);
-  const [showKeyboard, setShowKeyboard] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [counter, setCounter] = useState(0);
 
-  let player = new Player(useAudioContext());
-  //   const initializeSynth = () => {
-  //     const AC = new AudioContext();
-  //     setActx(AC);
-  //     if (!player) {
-  //       player = new Player(AC);
-  //     }
-  //   };
-  //   useEffect(() => {
-  //     initializeSynth();
-  //   }, []);
+  let tempo = 120.0;
+  const audioContext = useAudioContext();
 
-  //   const show = () => {
-  //     setShowKeyboard(true);
-  //   };
+  /////////////
+  //////////////////
+  useEffect(() => {}, [counter]);
 
-  const seqCallback = (stepIndex) => {
-    console.log("seqCallback", stepIndex);
-    dispatch(ActionCreators.setPlayingStep(stepIndex));
+  const player = new Player(audioContext);
+
+  // Expose frequency & frequency modulation
+
+  const lookahead = 25.0; // How frequently to call scheduling function (in milliseconds)
+  const scheduleAheadTime = 0.1; // How far ahead to schedule audio (sec)
+
+  let currentNote = 0; // The note we are currently playing
+  let nextNoteTime = 0.0; // when the next note is due.
+  function nextNote() {
+    const secondsPerBeat = 60.0 / tempo;
+
+    nextNoteTime += secondsPerBeat; // Add beat length to last beat time
+
+    // Advance the beat number, wrap to zero when reaching 4
+    currentNote = (currentNote + 1) % 12;
+    setCounter(currentNote);
+  }
+  let keyEvents = [
+    [{ type: "noteOn", note: "C-3" }],
+    [
+      { type: "noteOn", note: "F-3" },
+      { type: "noteOff", note: "C-3" },
+    ],
+    [
+      { type: "noteOn", note: "G-3" },
+      { type: "noteOff", note: "F-3" },
+    ],
+    [{ type: "noteOff", note: "G-3" }],
+  ];
+
+  const masterSchedule = [
+    keyEvents,
+    null,
+    null,
+    null,
+    keyEvents,
+    null,
+    null,
+    null,
+    keyEvents,
+    null,
+    null,
+    null,
+  ];
+
+  const eventQueue = [[], [], [], [], [], [], [], [], [], [], [], []];
+
+  const mapEvents = (masterEvents, currBeat) => {
+    masterEvents.forEach((events, index) => {
+      if (events) {
+        events.forEach((event) => {
+          eventQueue.at(currBeat + index).push(event);
+        });
+      }
+    });
   };
-  const renderKeyboard = () => {
-    return <Keyboard />;
+
+  function scheduleNote(beatNumber, time) {
+    //Add new loops to the queue
+    if (masterSchedule[beatNumber]) {
+      mapEvents(masterSchedule[beatNumber], beatNumber);
+    }
+
+    if (eventQueue[beatNumber].length > 0) {
+      console.log("BEAT: ", beatNumber);
+
+      eventQueue[beatNumber].forEach((e) => {
+        console.log("Playing ", e);
+        player.handleEvent(e, time);
+      });
+      eventQueue[beatNumber] = [];
+    }
+
+    //play events in the queue
+
+    // if (keyEvents[beatNumber] && keyEvents[beatNumber].length > 0) {
+    //   keyEvents[beatNumber].forEach((event) => {
+    //     player.handleEvent(event, time);
+    //   });
+    // }
+  }
+
+  let timerID;
+  function scheduler() {
+    while (nextNoteTime < audioContext.currentTime + scheduleAheadTime) {
+      scheduleNote(currentNote, nextNoteTime);
+
+      nextNote();
+    }
+    timerID = setTimeout(scheduler, lookahead);
+  }
+
+  const handleSinglePlay = () => {
+    player.noteOn("C-3", audioContext.currentTime);
+    player.noteOn("F-3", audioContext.currentTime);
   };
 
-  const startSequencer = () => {
-    player.isPlaying ? player.stop() : player.play(seqCallback);
+  const handleSingleStop = () => {
+    player.noteOff("C-3", audioContext.currentTime);
+  };
+  const handleSingleStopF = () => {
+    player.noteOff("F-3", audioContext.currentTime);
   };
   const handlePlay = () => {
-    //play
-    startSequencer();
+    if (!isPlaying) {
+      // Start playing
+      // Check if context is in suspended state (autoplay policy)
+      if (audioContext.state === "suspended") {
+        audioContext.resume();
+      }
+
+      currentNote = 0;
+      nextNoteTime = audioContext.currentTime;
+      scheduler(); // kick off scheduling
+    } else {
+      window.clearTimeout(timerID);
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  const handleStop = () => {
+    setIsPlaying(false);
+    window.clearTimeout(timerID);
   };
   return (
     <>
@@ -80,7 +158,14 @@ export default function Home() {
       </Head>
       <main className={`${styles.main} ${inter.className}`}>
         <button onClick={handlePlay}>Play All</button>
+        <button onClick={handleStop}>STOP</button>
 
+        <button onClick={handleSinglePlay}>Single Play</button>
+        <button onClick={handleSingleStop}>Single Stop</button>
+        <button onClick={handleSingleStopF}>Single Stop F</button>
+
+        <p>{counter}</p>
+        {isPlaying ? <p>PLAYING</p> : ""}
         <Keyboard />
       </main>
     </>

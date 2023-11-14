@@ -1,5 +1,6 @@
 // Synth class
 import sequencerTimer from "./Sequencer";
+import NOTES from "../data/notes";
 
 class Synth {
   static TYPES = ["sine", "square", "triangle", "sawtooth"];
@@ -13,18 +14,18 @@ class Synth {
   static MAX_FILTER_Q = 30;
 
   static PARAM_DEFAULTS = {
-    unisonWidth: 0.2,
-    volume: 0.3,
-    adsrAttack: 0.2,
-    adsrDecay: 0,
-    adsrSustain: 1,
-    adsrRelease: 0.2,
-    adsrTarget: 0,
-    filterFreq: 0.5,
-    filterQ: 0.2,
-    echoTime: 0,
-    echoFeedback: 0,
-    waveform: 3,
+    unisonWidth: 0.1, // Adjust to a lower value for less detuning
+    volume: 0.5, // Increase for a louder sound
+    adsrAttack: 0.1, // Shorten the attack for a quicker onset
+    adsrDecay: 0.1, // Introduce a slight decay for natural-sounding notes
+    adsrSustain: 0.8, // Lower the sustain level slightly for a smoother decay
+    adsrRelease: 0.2, // Maintain a short release for crisp note endings
+    adsrTarget: 0, // Ensure the ADSR target is set to the amplitude
+    filterFreq: 0.4, // Adjust the filter frequency for a smoother sound
+    filterQ: 0.1, // Lower the filter Q value for a less resonant sound
+    echoTime: 0, // Disable the echo effect for now
+    echoFeedback: 0, // Disable the echo feedback for now
+    waveform: 0,
   };
 
   constructor(AC, params = {}) {
@@ -215,7 +216,7 @@ class Synth {
   };
 
   noteOff = (t = 0) => {
-    const ct = Synth.AC.currentTime;
+    const ct = t;
 
     const relDuration = this.params.adsrRelease * Synth.MAX_ADSR_STAGE_DURATION;
     this.killOscillators(ct + relDuration);
