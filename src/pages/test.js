@@ -10,6 +10,7 @@ import Player from "../../classes/Player";
 const inter = Inter({ subsets: ["latin"] });
 import { useAudioContext } from "../../providers/AudioContextContext";
 import NOTES from "../../data/notes";
+import SynthPlayer from "../../components/instruments/SynthPlayer";
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
@@ -156,17 +157,21 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main} ${inter.className}`}>
-        <button onClick={handlePlay}>Play All</button>
-        <button onClick={handleStop}>STOP</button>
+      <main className={`${styles.main}`}>
+        <div className="flex flex-row w-100 ml-1 justify-center t-b">
+          <button onClick={handlePlay}>Play All</button>
+          <button onClick={handleStop}>STOP</button>
+          <button onClick={handleSinglePlay}>Single Play</button>
+          <button onClick={handleSingleStop}>Single Stop</button>
+          <button onClick={handleSingleStopF}>Single Stop F</button>
+          <p>{counter}</p>
+          {isPlaying ? <p>PLAYING</p> : ""}{" "}
+        </div>
+        <div className="w-100 t-b relative">
+          <SynthPlayer />
+        </div>
 
-        <button onClick={handleSinglePlay}>Single Play</button>
-        <button onClick={handleSingleStop}>Single Stop</button>
-        <button onClick={handleSingleStopF}>Single Stop F</button>
-
-        <p>{counter}</p>
-        {isPlaying ? <p>PLAYING</p> : ""}
-        <Keyboard />
+        {/* <Keyboard /> */}
       </main>
     </>
   );

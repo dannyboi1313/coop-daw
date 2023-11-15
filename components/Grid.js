@@ -1,0 +1,227 @@
+import { useState, useEffect } from "react";
+import styles from "@/styles/NoteGrid.module.css";
+
+const Grid = () => {
+  //   const [grid, setGrid] = useState([
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  //   ]); // Grid state
+  const [grid, setGrid] = useState([
+    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
+    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
+    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
+    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
+    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
+    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
+  ]); // Grid state
+  const [notes, setNotes] = useState(
+    new Map([
+      [1, { id: 1, row: 2, start: 0, end: 4 }],
+      [2, { id: 2, row: 3, start: 0, end: 4 }],
+    ])
+  );
+  const [noteCount, setNoteCount] = useState(2);
+
+  const [rendered, setRendered] = useState(false);
+  const [draggingNote, setDraggingNote] = useState(null);
+  const [expandRightNote, setExpandRightNote] = useState(null);
+
+  useEffect(() => {
+    // if (!rendered) {
+    //   updateGrid();
+    //   setRendered(true);
+    // }
+    updateGrid();
+  }, [notes, draggingNote, expandRightNote]);
+
+  const handleGridClick = (row, col, cell) => {
+    if (cell !== null) {
+      return;
+    }
+    const currNotes = notes;
+    const start = col;
+    const end = start + 2;
+    const id = noteCount + 1;
+    currNotes.set(id, { id: id, row: row, start: start, end: end });
+    setNoteCount(noteCount + 1);
+    setNotes(currNotes);
+    updateGrid();
+  };
+
+  const updateGrid = () => {
+    //Update grid with rectangles
+    const newGrid = grid;
+    console.log("Updating", newGrid, notes);
+
+    for (let value of notes.values()) {
+      //   console.log("val", value);
+      newGrid[value.row][value.start] = value;
+      newGrid[value.row][value.end] = value;
+
+      for (let i = value.start + 1; i <= value.end - 1; i++) {
+        newGrid[value.row][i] = value;
+      }
+    }
+
+    // console.log("Updated", newGrid);
+
+    setGrid([...newGrid]);
+  };
+
+  const handleNoteClick = (row, col, note) => {
+    // Start dragging the note
+    console.log("Clicking", note);
+
+    if (note && expandRightNote === null) {
+      console.log("setting drag", note);
+      setDraggingNote({ note: note, clickX: row, clickY: col });
+    }
+  };
+
+  const handleNoteExpand = (direction, row, col, note) => {
+    // Start dragging the note
+    console.log("Expanding", note);
+
+    if (note) {
+      console.log("setting expand", note);
+      setExpandRightNote({ note: note, clickX: row, clickY: col });
+    }
+  };
+
+  const handleGridDrag = (row, col) => {
+    if (draggingNote) {
+      if (draggingNote.clickX == row && draggingNote.clickY == col) return;
+      if (grid[row][col] !== null) return;
+
+      const note = draggingNote.note;
+      //Delete old imprint of note in grid
+      for (let i = note.start; i <= note.end; i++) {
+        grid[note.row][i] = null;
+      }
+
+      const oldId = note.id;
+      const length = note.end - note.start;
+
+      const id = oldId;
+      const updatedNote = { id: id, row: row, start: col, end: col + length };
+      const newNotes = notes;
+
+      //newNotes.delete(oldId);
+      newNotes.set(id, updatedNote);
+      setDraggingNote({ note: updatedNote, clickX: row, clickY: col });
+
+      setNotes(newNotes);
+    } else if (expandRightNote) {
+      if (expandRightNote.clickX == row && expandRightNote.clickY == col)
+        return;
+      if (
+        grid[row][col] !== null &&
+        grid[row][col].id !== expandRightNote.note.id
+      )
+        return;
+
+      if (col <= expandRightNote.start + 1) return;
+      console.log("drag somebody", row, col);
+
+      const note = expandRightNote.note;
+      const oldRow = note.row;
+      const oldStart = note.start;
+      const oldId = note.id;
+
+      //Delete old imprint of note in grid
+      console.log("Old", grid);
+
+      for (let i = oldStart; i <= note.end + 1; i++) {
+        console.log("Changing ", grid[oldRow][i], " to null");
+        grid[oldRow][i] = null;
+        console.log("Changed ", grid[oldRow][i]);
+      }
+      console.log("Fresh", grid);
+
+      const id = oldId;
+      const updatedNote = {
+        id: id,
+        row: oldRow,
+        start: oldStart,
+        end: col,
+      };
+      const newNotes = notes;
+
+      //newNotes.delete(oldId);
+      newNotes.set(id, updatedNote);
+      setExpandRightNote({ note: updatedNote, clickX: oldRow, clickY: col });
+
+      setNotes(newNotes);
+    }
+  };
+  const handleGridRelease = () => {
+    // Stop dragging the note
+    setDraggingNote(null);
+    setExpandRightNote(null);
+  };
+  const getPosition = (cell, col) => {
+    if (cell.start == col) return styles.start;
+    if (cell.end == col) return styles.end;
+    return styles.green;
+  };
+  return (
+    <div>
+      {/* Render the grid */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${grid[0].length}, 3rem)`,
+          gap: "1px",
+          backgroundColor: "#ddd",
+        }}
+      >
+        {grid.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <div
+              key={`${rowIndex}-${colIndex}`}
+              className={`${styles.gridCell} ${
+                cell !== null && styles.disabled
+              }`}
+              onClick={() => handleGridClick(rowIndex, colIndex, cell)}
+              onMouseUp={handleGridRelease}
+              onMouseMove={() => handleGridDrag(rowIndex, colIndex)}
+            >
+              {cell !== null && (
+                <div
+                  className={`${styles.selected} ${getPosition(
+                    cell,
+                    colIndex
+                  )}`}
+                  onMouseDown={() => handleNoteClick(rowIndex, colIndex, cell)}
+                ></div>
+              )}
+              {cell && cell.end === colIndex && (
+                <div
+                  className={`${styles.dragBox} ${styles.end}`}
+                  onMouseDown={() =>
+                    handleNoteExpand("right", rowIndex, colIndex, cell)
+                  }
+                ></div>
+              )}
+              {cell && cell.start === colIndex && (
+                <div
+                  className={`${styles.dragBoxLeft} ${styles.start}`}
+                  onMouseDown={() =>
+                    handleNoteExpand("right", rowIndex, colIndex, cell)
+                  }
+                ></div>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default Grid;
