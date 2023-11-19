@@ -1,15 +1,39 @@
+.notePage {
+}
+
+.gridWrapper {
+  width: 50rem;
+  height: 65rem;
+  position: relative;
+}
 .gridContainer {
   height: 50rem;
   width: 50rem;
-  background-color: teal;
+  overflow: scroll;
+
   position: absolute;
   z-index: 10;
-  left: 50%;
 }
 .grid {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  gap: 1px;
+}
+
+.gridHeader {
+  display: grid;
+  gap: 1px;
+}
+
+.gridHeaderCell {
+  width: 3rem;
+  height: 5rem;
+  border: 1px solid #ccc;
+  position: relative;
+  background-color: #f3f3f3;
+}
+
+.highlighted {
+  background-color: green;
 }
 .gridRow {
   width: 100%;
@@ -26,6 +50,7 @@
   height: 5rem;
   border: 1px solid #ccc;
   position: relative;
+  background-color: #f3f3f3;
 }
 .selected {
   position: absolute;

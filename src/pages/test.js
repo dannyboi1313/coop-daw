@@ -11,20 +11,116 @@ const inter = Inter({ subsets: ["latin"] });
 import { useAudioContext } from "../../providers/AudioContextContext";
 import NOTES from "../../data/notes";
 import SynthPlayer from "../../components/instruments/SynthPlayer";
+import SynthModel from "../../models/SynthModel";
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [counter, setCounter] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [instrument, setInstrument] = useState(null);
+  const [audioContext, setAudioContext] = useState(useAudioContext());
+  const [masterSchedule, setMasterSchedule] = useState(
+    [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,]) //prettier-ignore
+  const [timerID, setTimerID] = useState(null);
+
+  const [sections, setSections] = useState([]);
+  const [eventQueue, setEventQueue] = useState(null);
+  const [dtmf, setDtmf] = useState(null);
+  const [metronomeOn, setMetronomeOn] = useState(false);
+
+  useEffect(() => {
+    // const fetchInstruments = async () => {
+    //   try {
+    //     // const response = await fetch("your-api-endpoint-for-instruments");
+    //     // const data = await response.json();
+    //     setInstruments(data);
+    //     setLoading(false); // Set loading to false once instruments are fetched
+    //   } catch (error) {
+    //     console.error("Error fetching instruments:", error);
+    //     setLoading(false); // Set loading to false in case of an error
+    //   }
+    // };
+    const samples = async () => {
+      const sample = await setupSample();
+      setDtmf(sample);
+    };
+    samples();
+    //fetchInstruments();
+    // const ac = useAudioContext();
+    //setAudioContext(ac);
+    const s = new SynthModel(audioContext);
+    setInstrument(s);
+    setSections([
+      { sectionId: 1, startTime: 0, instrument: s },
+      { sectionId: 2, startTime: 4, instrument: s },
+    ]);
+    setEventQueue([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]); //prettier-ignore
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying]);
+
+  const updateInstrument = (notes, size, instrumentId = 1) => {
+    const updated = instrument.updateEvents(notes, size);
+    setInstrument(updated);
+    console.log("Insturment", instrument);
+  };
+  const emptyQueue = (queue) => {
+    //const queue = eventQueue;
+    queue.map((a, index) => {
+      queue[index] = [];
+    });
+    //setEventQueue(queue);
+    return queue;
+  };
+  const updateEventQueue = () => {
+    const queue = emptyQueue(eventQueue);
+
+    sections.map((section) => {
+      const startTime = section.startTime;
+      const events = section.instrument.getEventList();
+      events.map((event, index) => {
+        event.map((e) => {
+          queue.at(startTime + index).push(e);
+        });
+      });
+    });
+    setEventQueue(queue);
+  };
 
   let tempo = 120.0;
-  const audioContext = useAudioContext();
+  let playbackRate = 1;
+  //const audioContext = useAudioContext();
 
   /////////////
   //////////////////
-  useEffect(() => {}, [counter]);
 
-  const player = new Player(audioContext);
+  async function getFile(audioContext, filepath) {
+    const response = await fetch(filepath);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    return audioBuffer;
+  }
+  async function setupSample() {
+    const filePath = "/sounds/metronome.wav";
+    const sample = await getFile(audioContext, filePath);
+    return sample;
+  }
+  function playSample(audioBuffer, time) {
+    const sampleSource = new AudioBufferSourceNode(audioContext, {
+      buffer: audioBuffer,
+      playbackRate,
+    });
+    sampleSource.connect(audioContext.destination);
+    sampleSource.start(time);
+    return sampleSource;
+  }
+
+  if (loading) {
+    return <p>Loading</p>;
+  }
+  //const player = new Player(audioContext);
 
   // Expose frequency & frequency modulation
 
@@ -39,115 +135,67 @@ export default function Home() {
     nextNoteTime += secondsPerBeat; // Add beat length to last beat time
 
     // Advance the beat number, wrap to zero when reaching 4
-    currentNote = (currentNote + 1) % 12;
+    currentNote = (currentNote + 1) % 20;
     setCounter(currentNote);
   }
-  let keyEvents = [
-    [{ type: "noteOn", note: "C-3" }],
-    [
-      { type: "noteOn", note: "F-3" },
-      { type: "noteOff", note: "C-3" },
-    ],
-    [
-      { type: "noteOn", note: "G-3" },
-      { type: "noteOff", note: "F-3" },
-    ],
-    [{ type: "noteOff", note: "G-3" }],
-  ];
 
-  const masterSchedule = [
-    keyEvents,
-    null,
-    null,
-    null,
-    keyEvents,
-    null,
-    null,
-    null,
-    keyEvents,
-    null,
-    null,
-    null,
-  ];
-
-  const eventQueue = [[], [], [], [], [], [], [], [], [], [], [], []];
-
-  const mapEvents = (masterEvents, currBeat) => {
-    masterEvents.forEach((events, index) => {
-      if (events) {
-        events.forEach((event) => {
-          eventQueue.at(currBeat + index).push(event);
-        });
-      }
-    });
+  const getMetronome = () => {
+    return metronomeOn;
   };
-
   function scheduleNote(beatNumber, time) {
-    //Add new loops to the queue
-    if (masterSchedule[beatNumber]) {
-      mapEvents(masterSchedule[beatNumber], beatNumber);
+    updateEventQueue();
+    console.log("Event Queue", eventQueue);
+
+    if (getMetronome() === true) {
+      console.log("Scheduled some metronome", metronomeOn, time);
+      playSample(dtmf, time);
     }
 
     if (eventQueue[beatNumber].length > 0) {
       console.log("BEAT: ", beatNumber);
 
       eventQueue[beatNumber].forEach((e) => {
-        console.log("Playing ", e);
-        player.handleEvent(e, time);
+        console.log("Playing ", e.note);
+        instrument.handleEvent(e, time);
       });
       eventQueue[beatNumber] = [];
     }
-
-    //play events in the queue
-
-    // if (keyEvents[beatNumber] && keyEvents[beatNumber].length > 0) {
-    //   keyEvents[beatNumber].forEach((event) => {
-    //     player.handleEvent(event, time);
-    //   });
-    // }
   }
 
-  let timerID;
   function scheduler() {
     while (nextNoteTime < audioContext.currentTime + scheduleAheadTime) {
       scheduleNote(currentNote, nextNoteTime);
 
       nextNote();
     }
-    timerID = setTimeout(scheduler, lookahead);
+    setTimerID(setTimeout(scheduler, lookahead));
   }
 
-  const handleSinglePlay = () => {
-    player.noteOn("C-3", audioContext.currentTime);
-    player.noteOn("F-3", audioContext.currentTime);
-  };
-
-  const handleSingleStop = () => {
-    player.noteOff("C-3", audioContext.currentTime);
-  };
-  const handleSingleStopF = () => {
-    player.noteOff("F-3", audioContext.currentTime);
-  };
   const handlePlay = () => {
-    if (!isPlaying) {
-      // Start playing
-      // Check if context is in suspended state (autoplay policy)
-      if (audioContext.state === "suspended") {
-        audioContext.resume();
-      }
-
-      currentNote = 0;
-      nextNoteTime = audioContext.currentTime;
-      scheduler(); // kick off scheduling
-    } else {
-      window.clearTimeout(timerID);
+    console.log("Starting to play");
+    // Start playing
+    // Check if context is in suspended state (autoplay policy)
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
     }
-    setIsPlaying(!isPlaying);
+
+    currentNote = counter;
+    nextNoteTime = audioContext.currentTime;
+    scheduler(); // kick off scheduling
   };
+  //const synth = new SynthModel(audioContext);
 
   const handleStop = () => {
     setIsPlaying(false);
     window.clearTimeout(timerID);
+    instrument.stopAllNotes();
+  };
+  const handleMetronomeClick = () => {
+    handleStop();
+    setMetronomeOn(!metronomeOn);
+    setTimeout(() => {
+      handlePlay();
+    }, 200);
   };
   return (
     <>
@@ -158,17 +206,49 @@ export default function Home() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <main className={`${styles.main}`}>
-        <div className="flex flex-row w-100 ml-1 justify-center t-b">
+        <div className="flex flex-row w-100 ml-1 justify-center">
           <button onClick={handlePlay}>Play All</button>
           <button onClick={handleStop}>STOP</button>
-          <button onClick={handleSinglePlay}>Single Play</button>
-          <button onClick={handleSingleStop}>Single Stop</button>
-          <button onClick={handleSingleStopF}>Single Stop F</button>
+          <button
+            onClick={() => {
+              setCounter(counter + 1);
+            }}
+          >
+            WOOOOHOOO
+          </button>
+          <button
+            onClick={() => {
+              handleMetronomeClick();
+            }}
+          >
+            METRONOME {metronomeOn ? "ON" : "OFF"} {metronomeOn}
+          </button>
           <p>{counter}</p>
           {isPlaying ? <p>PLAYING</p> : ""}{" "}
         </div>
-        <div className="w-100 t-b relative">
-          <SynthPlayer />
+        <div className="w-100 relative">
+          <SynthPlayer
+            notes={instrument.getNotes()}
+            updateNotes={updateInstrument}
+            timer={counter - 1}
+          />
+          <div>
+            {instrument.name}
+            {instrument.getEventList().map((event, index) => {
+              return (
+                <div>
+                  {index}
+                  {event.map((e) => {
+                    return (
+                      <p>
+                        {e.type}:{e.note}
+                      </p>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* <Keyboard /> */}

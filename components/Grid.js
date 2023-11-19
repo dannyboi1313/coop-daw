@@ -1,31 +1,20 @@
 import { useState, useEffect } from "react";
 import styles from "@/styles/NoteGrid.module.css";
 
-const Grid = () => {
-  //   const [grid, setGrid] = useState([
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //     [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  //   ]); // Grid state
-  const [grid, setGrid] = useState([
-    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
-    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
-    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
-    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
-    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
-    [null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,  null,], // prettier-ignore
-  ]); // Grid state
-  const [notes, setNotes] = useState(
-    new Map([
-      [1, { id: 1, row: 2, start: 0, end: 4 }],
-      [2, { id: 2, row: 3, start: 0, end: 4 }],
-    ])
-  );
-  const [noteCount, setNoteCount] = useState(2);
+const MIN_NOTE_SIZE = 2;
+
+const Grid = ({ instrumentNotes, updateNotes, timer }) => {
+  const [gridSize, setGridSize] = useState(20);
+
+  const [grid, setGrid] = useState(() => {
+    const newArray = new Array(10);
+    for (let i = 0; i < 10; i++) {
+      newArray[i] = new Array(gridSize).fill(null);
+    }
+    return newArray;
+  }); // Grid state
+  const [notes, setNotes] = useState(instrumentNotes);
+  const [noteCount, setNoteCount] = useState(instrumentNotes.length);
 
   const [rendered, setRendered] = useState(false);
   const [draggingNote, setDraggingNote] = useState(null);
@@ -46,9 +35,9 @@ const Grid = () => {
     const currNotes = notes;
     const start = col;
     const end = start + 2;
-    const id = noteCount + 1;
+    const id = currNotes.size + 1;
     currNotes.set(id, { id: id, row: row, start: start, end: end });
-    setNoteCount(noteCount + 1);
+
     setNotes(currNotes);
     updateGrid();
   };
@@ -71,6 +60,7 @@ const Grid = () => {
     // console.log("Updated", newGrid);
 
     setGrid([...newGrid]);
+    updateNotes(notes, gridSize);
   };
 
   const handleNoteClick = (row, col, note) => {
@@ -125,7 +115,7 @@ const Grid = () => {
       )
         return;
 
-      if (col <= expandRightNote.start + 1) return;
+      if (col < expandRightNote.note.start + MIN_NOTE_SIZE - 1) return;
       console.log("drag somebody", row, col);
 
       const note = expandRightNote.note;
@@ -155,7 +145,9 @@ const Grid = () => {
       //newNotes.delete(oldId);
       newNotes.set(id, updatedNote);
       setExpandRightNote({ note: updatedNote, clickX: oldRow, clickY: col });
-
+      //   if (gridSize - updatedNote.end > 3) {
+      //     setGridSize(gridSize + 2);
+      //   }
       setNotes(newNotes);
     }
   };
@@ -170,55 +162,76 @@ const Grid = () => {
     return styles.green;
   };
   return (
-    <div>
-      {/* Render the grid */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: `repeat(${grid[0].length}, 3rem)`,
-          gap: "1px",
-          backgroundColor: "#ddd",
-        }}
-      >
-        {grid.map((row, rowIndex) =>
-          row.map((cell, colIndex) => (
-            <div
-              key={`${rowIndex}-${colIndex}`}
-              className={`${styles.gridCell} ${
-                cell !== null && styles.disabled
-              }`}
-              onClick={() => handleGridClick(rowIndex, colIndex, cell)}
-              onMouseUp={handleGridRelease}
-              onMouseMove={() => handleGridDrag(rowIndex, colIndex)}
-            >
-              {cell !== null && (
-                <div
-                  className={`${styles.selected} ${getPosition(
-                    cell,
-                    colIndex
-                  )}`}
-                  onMouseDown={() => handleNoteClick(rowIndex, colIndex, cell)}
-                ></div>
-              )}
-              {cell && cell.end === colIndex && (
-                <div
-                  className={`${styles.dragBox} ${styles.end}`}
-                  onMouseDown={() =>
-                    handleNoteExpand("right", rowIndex, colIndex, cell)
-                  }
-                ></div>
-              )}
-              {cell && cell.start === colIndex && (
-                <div
-                  className={`${styles.dragBoxLeft} ${styles.start}`}
-                  onMouseDown={() =>
-                    handleNoteExpand("right", rowIndex, colIndex, cell)
-                  }
-                ></div>
-              )}
-            </div>
-          ))
-        )}
+    <div className={styles.gridWrapper}>
+      {timer}
+      <div className={styles.gridContainer}>
+        {/* Render the grid */}
+        <div
+          className={styles.gridHeader}
+          style={{
+            gridTemplateColumns: `repeat(${gridSize}, 3rem)`,
+          }}
+        >
+          {grid[0].map((e, index) => {
+            return (
+              <div
+                className={`${styles.gridHeaderCell} ${
+                  index === timer && styles.highlighted
+                }`}
+              >
+                {index}
+              </div>
+            );
+          })}
+        </div>
+        <div
+          className={styles.grid}
+          style={{
+            gridTemplateColumns: `repeat(${gridSize}, 3rem)`,
+          }}
+        >
+          {grid.map((row, rowIndex) =>
+            row.map((cell, colIndex) => (
+              <div
+                key={`${rowIndex}-${colIndex}`}
+                className={`${styles.gridCell} ${
+                  cell !== null && styles.disabled
+                }`}
+                onClick={() => handleGridClick(rowIndex, colIndex, cell)}
+                onMouseUp={handleGridRelease}
+                onMouseMove={() => handleGridDrag(rowIndex, colIndex)}
+              >
+                {cell !== null && (
+                  <div
+                    className={`${styles.selected} ${getPosition(
+                      cell,
+                      colIndex
+                    )}`}
+                    onMouseDown={() =>
+                      handleNoteClick(rowIndex, colIndex, cell)
+                    }
+                  ></div>
+                )}
+                {cell && cell.end === colIndex && (
+                  <div
+                    className={`${styles.dragBox} ${styles.end}`}
+                    onMouseDown={() =>
+                      handleNoteExpand("right", rowIndex, colIndex, cell)
+                    }
+                  ></div>
+                )}
+                {cell && cell.start === colIndex && (
+                  <div
+                    className={`${styles.dragBoxLeft} ${styles.start}`}
+                    onMouseDown={() =>
+                      handleNoteExpand("left", rowIndex, colIndex, cell)
+                    }
+                  ></div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
       </div>
     </div>
   );

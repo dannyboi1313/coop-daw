@@ -434,18 +434,6 @@ class Player {
     osc.connect(nodes.adsr);
     return osc;
   };
-  handleEvent = (event, time = 0) => {
-    switch (event.type) {
-      case "noteOn":
-        this.noteOn(event.note, time);
-        break;
-      case "noteOff":
-        this.noteOff(event.note, time);
-        break;
-      default:
-        break;
-    }
-  };
 }
 
 export default Player;

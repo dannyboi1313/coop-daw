@@ -2,13 +2,7 @@ import styles from "@/styles/NoteGrid.module.css";
 import { useState } from "react";
 import Grid from "./Grid";
 
-const NoteGrid = () => {
-  const [grid, setGrid] = useState([
-    [0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0],
-    [0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-    [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
-  ]);
-
+const NoteGrid = ({ notes, updateNotes, timer }) => {
   const renderGrid = () => {
     return (
       <div className={styles.grid}>
@@ -35,13 +29,13 @@ const NoteGrid = () => {
   };
 
   return (
-    <div className={styles.gridContainer}>
+    <div className={styles.notePage}>
       <div>Title stuff</div>
       <div>
         Keyboard Juice
         <div>SideKeys</div>
         {/* <div>{renderGrid()}</div> */}
-        <Grid />
+        <Grid instrumentNotes={notes} updateNotes={updateNotes} timer={timer} />
       </div>
     </div>
   );
