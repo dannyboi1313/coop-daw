@@ -1,3 +1,4 @@
+import Error from "next/error";
 import Player from "../classes/Player";
 import Synth from "../classes/Synth";
 import NOTES from "../data/notes";
@@ -49,32 +50,34 @@ export default class SynthModel {
   //   "C-4": 523.25,
   mapRowToKey = (key) => {
     switch (key) {
-      case 0:
+      case 12:
         return "C-3";
-      case 1:
+      case 11:
         return "C#3";
-      case 2:
+      case 10:
         return "D-3";
-      case 3:
+      case 9:
         return "D#3";
-      case 4:
+      case 8:
         return "E-3";
-      case 5:
+      case 7:
         return "F-3";
       case 6:
         return "F#3";
-      case 7:
+      case 5:
         return "G-3";
-      case 8:
+      case 4:
         return "G#3";
-      case 9:
+      case 3:
         return "A-3";
-      case 10:
+      case 2:
         return "A#3";
-      case 11:
+      case 1:
         return "B-3";
-      default:
+      case 0:
         return "C-4";
+      default:
+        throw Error;
     }
   };
 
