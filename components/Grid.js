@@ -126,11 +126,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
       //Delete old imprint of note in grid
       console.log("Old", grid);
 
-      for (let i = oldStart; i <= note.end + 1; i++) {
-        console.log("Changing ", grid[oldRow][i], " to null");
-        grid[oldRow][i] = null;
-        console.log("Changed ", grid[oldRow][i]);
-      }
+      deleteNoteOnGrid(oldStart, note.end, oldRow);
       console.log("Fresh", grid);
 
       const id = oldId;
@@ -151,6 +147,23 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
       setNotes(newNotes);
     }
   };
+  const deleteNoteOnGrid = (start, end, row) => {
+    for (let i = start; i <= end + 1; i++) {
+      grid[row][i] = null;
+    }
+  };
+  const handleGridRightClick = (event) => {
+    event.preventDefault();
+  };
+  const handleNoteDelete = (note) => {
+    const noteToDelete = notes.get(note.id);
+    if (noteToDelete !== null) {
+      const updateNotes = notes;
+      deleteNoteOnGrid(noteToDelete.start, noteToDelete.end, noteToDelete.row);
+      updateNotes.delete(note.id);
+      setNotes(updateNotes);
+    }
+  };
   const handleGridRelease = () => {
     // Stop dragging the note
     setDraggingNote(null);
@@ -162,7 +175,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
     return styles.green;
   };
   return (
-    <div className={styles.gridWrapper}>
+    <div className={styles.gridWrapper} onContextMenu={handleGridRightClick}>
       {timer}
       <div className={styles.gridContainer}>
         {/* Render the grid */}
@@ -210,6 +223,9 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
                     onMouseDown={() =>
                       handleNoteClick(rowIndex, colIndex, cell)
                     }
+                    onContextMenu={() => {
+                      handleNoteDelete(cell);
+                    }}
                   ></div>
                 )}
                 {cell && cell.end === colIndex && (
