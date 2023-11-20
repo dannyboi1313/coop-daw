@@ -7,6 +7,7 @@ const NoteGrid = ({
   updateNotes,
   timer,
   handleClose,
+  instrumentID,
   isOpen = true,
   toggleModule,
 }) => {
@@ -74,6 +75,7 @@ const NoteGrid = ({
         <button onClick={toggleModule}>
           {isOpen ? "Close Module" : "Open Module"}
         </button>
+        <p>{instrumentID}</p>
         <button onClick={handleMinimize}>Minimize</button>
         <button onClick={handleExpand}>Expand</button>
         <button onClick={handleClose}>Close</button>
@@ -81,7 +83,12 @@ const NoteGrid = ({
 
       {/* Content of the open module */}
       <div className={styles.gridContent}>
-        <Grid instrumentNotes={notes} updateNotes={updateNotes} timer={timer} />
+        <Grid
+          instrumentNotes={notes}
+          updateNotes={updateNotes}
+          timer={timer}
+          instrumentID={instrumentID}
+        />
       </div>
       {/* Add more content as needed */}
     </div>

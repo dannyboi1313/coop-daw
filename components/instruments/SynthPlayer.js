@@ -8,6 +8,7 @@ const SynthPlayer = ({ instrument, updateNotes, timer, closeEditor }) => {
         updateNotes={updateNotes}
         timer={timer}
         handleClose={closeEditor}
+        instrumentID={instrument.instrumentId}
       />{" "}
     </div>
   );

@@ -15,6 +15,7 @@ export default function Home() {
   const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(true);
   const [instrument, setInstrument] = useState(null);
+  const [instruments, setInstruments] = useState(null);
   const [audioContext, setAudioContext] = useState(useAudioContext());
   const [masterSchedule, setMasterSchedule] = useState(
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,]) //prettier-ignore
@@ -45,25 +46,34 @@ export default function Home() {
     //fetchInstruments();
     // const ac = useAudioContext();
     //setAudioContext(ac);
-    const s = new SynthModel(audioContext);
+    const s = new SynthModel(audioContext, 1);
+    const s2 = new SynthModel(audioContext, 2);
     setInstrument(s);
+    setInstruments({ 1: s, 2: s2 });
     setSections({
-      1: { sectionId: 1, startTime: 0, instrument: s },
-      2: { sectionId: 2, startTime: 8, instrument: s },
+      1: { sectionId: 1, startTime: 0, instrument: 1 },
+      2: { sectionId: 2, startTime: 8, instrument: 1 },
+      3: { sectionId: 3, startTime: 1, instrument: 2 },
+      4: { sectionId: 4, startTime: 4, instrument: 2 },
+      5: { sectionId: 5, startTime: 8, instrument: 2 },
+      6: { sectionId: 6, startTime: 12, instrument: 2 },
     });
     setTracks([
       { id: 1, volumn: 80, sections: [1, 2] },
-      { id: 2, volumn: 80, sections: [] },
+      { id: 2, volumn: 80, sections: [3, 4, 5, 6] },
     ]);
     setEventQueue([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]); //prettier-ignore
     setLoading(false);
   }, []);
 
-  useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying]);
+  // useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying]);
 
-  const updateInstrument = (notes, size, instrumentId = 1) => {
-    const updated = instrument.updateEvents(notes, size);
-    setInstrument(updated);
+  const updateInstrument = (notes, size, instrumentId) => {
+    const oldInstrument = instruments[instrumentId];
+    const updated = oldInstrument.updateEvents(notes, size);
+    const oldList = instruments;
+    oldList[instrumentId] = updated;
+    setInstruments(oldList);
     console.log("Insturment", instrument);
   };
   const emptyQueue = (queue) => {
@@ -76,17 +86,22 @@ export default function Home() {
   };
   const updateEventQueue = () => {
     const queue = emptyQueue(eventQueue);
-
-    tracks[0].sections.map((sec) => {
-      const section = sections[sec];
-      const startTime = section.startTime;
-      const events = section.instrument.getEventList();
-      events.map((event, index) => {
-        event.map((e) => {
-          queue.at(startTime + index).push(e);
+    console.log("TRACks", tracks[0]);
+    tracks.map((track) => {
+      track.sections.map((sec) => {
+        const section = sections[sec];
+        const startTime = section.startTime;
+        const instrument = instruments[section.instrument];
+        console.log("TESTING", instrument);
+        const events = instrument.getEventList();
+        events.map((event, index) => {
+          event.map((e) => {
+            queue.at(startTime + index).push(e);
+          });
         });
       });
     });
+
     setEventQueue(queue);
   };
 
@@ -222,13 +237,16 @@ export default function Home() {
   };
   const renderSections = (section) => {
     const currSection = sections[section];
-    console.log("BEFORE SECTION", currSection);
     if (currSection === null) {
       return <></>;
     }
+    const currInstrument = instruments[currSection.instrument];
+
+    //console.log(currInstrument);
     return (
       <SectionMarker
         section={currSection}
+        instrument={currInstrument}
         updateInstrument={updateInstrument}
         timer={counter - 1}
       />

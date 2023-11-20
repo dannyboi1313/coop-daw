@@ -221,6 +221,10 @@ class Player {
     Player.AC.resume();
     const freq = getNoteFrequency(note);
 
+    if (this.activeNotes.get(note)) {
+      this.noteOff(note, Player.AC.currentTime);
+    }
+
     let nodes = {};
 
     nodes.volume = Player.AC.createGain();

@@ -6,15 +6,21 @@ export default class SynthModel {
   events = [[], [], [], []];
   notes = new Map([]);
   sectionLength = 4;
+  instrumentId = null;
 
-  constructor(audioctx) {
+  constructor(audioctx, id) {
     this.synth = new Player(audioctx);
+    this.instrumentId = id;
   }
   getNotes = () => {
     return this.notes;
   };
   getEventList = () => {
     return this.events;
+  };
+
+  setId = (id) => {
+    this.instrumentId = id;
   };
 
   updateEvents = (notes, size) => {

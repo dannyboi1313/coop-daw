@@ -5,7 +5,7 @@ import { mapRowToKey, getNoteCount } from "../utils/keyboardUtils";
 const MIN_NOTE_SIZE = 2;
 const NUM_KEYS = 72;
 
-const Grid = ({ instrumentNotes, updateNotes, timer }) => {
+const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const [gridSize, setGridSize] = useState(20);
 
   const [grid, setGrid] = useState(() => {
@@ -62,7 +62,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
     // console.log("Updated", newGrid);
 
     setGrid([...newGrid]);
-    updateNotes(notes, gridSize);
+    updateNotes(notes, gridSize, instrumentID);
   };
 
   const handleNoteClick = (row, col, note) => {
