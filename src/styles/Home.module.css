@@ -6,6 +6,9 @@
   min-height: 100vh;
 }
 .trackWrapper {
+  display: flex;
+  width: 100%;
+  height: 30rem;
 }
 .sectionMarker {
   position: absolute;
@@ -21,4 +24,30 @@
   height: 5rem;
   background-color: beige;
   border: solid #f3f3f3 1px;
+}
+.gridContainer {
+  display: flex;
+  flex-direction: column;
+}
+.trackColumn {
+  height: 100%;
+  width: 10rem;
+  display: flex;
+  flex-direction: column;
+}
+.trackInfo {
+  height: 5rem;
+  background-color: black;
+  color: white;
+}
+
+.selected {
+  background-color: peru;
+}
+
+.gridCell {
+  background-color: lightgray;
+}
+.selectedGrid {
+  background-color: blue;
 }

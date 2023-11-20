@@ -21,10 +21,46 @@ export default function Home() {
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,]) //prettier-ignore
   const [timerID, setTimerID] = useState(null);
 
-  const [sections, setSections] = useState([]);
+  const [sections, setSections] = useState(new Map());
   const [eventQueue, setEventQueue] = useState(null);
   const [dtmf, setDtmf] = useState(null);
   const [metronomeOn, setMetronomeOn] = useState(false);
+  const [selectedSection, setSelectedSection] = useState(null);
+  const [selectedGridCell, setSelectedGridCell] = useState(null);
+  const [copiedSection, setCopiedSection] = useState(null);
+
+  useEffect(() => {
+    // Attach the event listener when the component mounts
+    window.addEventListener("keydown", handleKeyDown);
+
+    // Detach the event listener when the component unmounts
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedSection, selectedGridCell, copiedSection]);
+  //KeyBindings
+  const handleKeyDown = (event) => {
+    // Handle key events here
+    console.log(event.key, selectedSection);
+
+    if (
+      event.key === "c" &&
+      (event.ctrlKey || event.metaKey) &&
+      selectedSection !== null
+    ) {
+      // Perform your desired action here
+      setCopiedSection(selectedSection);
+      console.log("Ctrl + C pressed");
+    }
+    if (
+      event.key === "v" &&
+      (event.ctrlKey || event.metaKey) &&
+      copiedSection !== null
+    ) {
+      console.log("Pasted");
+      addSection(copiedSection, selectedGridCell.col);
+    }
+  };
 
   useEffect(() => {
     // const fetchInstruments = async () => {
@@ -38,6 +74,7 @@ export default function Home() {
     //     setLoading(false); // Set loading to false in case of an error
     //   }
     // };
+
     const samples = async () => {
       const sample = await setupSample();
       setDtmf(sample);
@@ -53,23 +90,25 @@ export default function Home() {
     i.set(1, s);
     i.set(2, s2);
     setInstruments(i);
-    setSections({
-      1: { sectionId: 1, startTime: 0, instrument: 1 },
-      2: { sectionId: 2, startTime: 8, instrument: 1 },
-      3: { sectionId: 3, startTime: 0, instrument: 2 },
-      4: { sectionId: 4, startTime: 4, instrument: 2 },
-      5: { sectionId: 5, startTime: 8, instrument: 2 },
-      6: { sectionId: 6, startTime: 12, instrument: 2 },
-    });
+    sections.set(1, { sectionId: 1, startTime: 0, instrument: 1 });
+    sections.set(2, { sectionId: 2, startTime: 0, instrument: 2 });
     setTracks([
-      { id: 1, volumn: 80, sections: [1, 2] },
-      { id: 2, volumn: 80, sections: [3, 4, 5, 6] },
+      { id: 1, volumn: 80, sections: [1] },
+      { id: 2, volumn: 80, sections: [2] },
     ]);
     setEventQueue([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]); //prettier-ignore
     setLoading(false);
   }, []);
 
-  // useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying]);
+  useEffect(() => {}, [
+    loading,
+    instrument,
+    counter,
+    metronomeOn,
+    isPlaying,
+    sections,
+    tracks,
+  ]);
 
   const updateInstrument = (notes, size, instrumentId) => {
     const oldInstrument = instruments.get(instrumentId);
@@ -77,7 +116,7 @@ export default function Home() {
     const oldList = instruments;
     oldList[instrumentId] = updated;
     setInstruments(oldList);
-    console.log("Insturment", instrument);
+    //console.log("Insturment", instrument);
   };
   const emptyQueue = (queue) => {
     //const queue = eventQueue;
@@ -89,13 +128,13 @@ export default function Home() {
   };
   const updateEventQueue = () => {
     const queue = emptyQueue(eventQueue);
-    console.log("TRACks", tracks[0]);
+    //console.log("TRACks", tracks[0]);
     tracks.map((track) => {
       track.sections.map((sec) => {
-        const section = sections[sec];
+        const section = sections.get(sec);
         const startTime = section.startTime;
         const instrument = instruments.get(section.instrument);
-        console.log("TESTING", instrument);
+        //console.log("TESTING", instrument);
         const events = instrument.getEventList();
         events.map((event, index) => {
           event.map((e) => {
@@ -106,6 +145,22 @@ export default function Home() {
     });
 
     setEventQueue(queue);
+  };
+
+  const addSection = (id, start) => {
+    const newId = sections.size + 1;
+    const currSections = sections;
+    const sectionInstrument = instruments.get(id);
+    console.log("adding note", id, start, newId, sectionInstrument);
+    currSections.set(newId, {
+      sectionId: newId,
+      startTime: start,
+      instrument: id,
+    });
+    setSections(currSections);
+    const tracksCopy = tracks;
+    tracksCopy[id - 1].sections.push(newId);
+    setTracks(tracksCopy);
   };
 
   let tempo = 120.0;
@@ -163,18 +218,18 @@ export default function Home() {
   };
   function scheduleNote(beatNumber, time) {
     updateEventQueue();
-    console.log("Event Queue", eventQueue);
+    //console.log("Event Queue", eventQueue);
 
     if (getMetronome() === true) {
-      console.log("Scheduled some metronome", metronomeOn, time);
+      //console.log("Scheduled some metronome", metronomeOn, time);
       playSample(dtmf, time);
     }
 
     if (eventQueue[beatNumber].length > 0) {
-      console.log("BEAT: ", beatNumber);
+      //console.log("BEAT: ", beatNumber);
 
       eventQueue[beatNumber].forEach((e) => {
-        console.log("Playing ", e.note);
+        //console.log("Playing ", e.note);
         instrument.handleEvent(e, time);
       });
       eventQueue[beatNumber] = [];
@@ -191,7 +246,7 @@ export default function Home() {
   }
 
   const handlePlay = () => {
-    console.log("Starting to play");
+    //console.log("Starting to play");
     // Start playing
     // Check if context is in suspended state (autoplay policy)
     if (audioContext.state === "suspended") {
@@ -208,7 +263,7 @@ export default function Home() {
     setIsPlaying(false);
     window.clearTimeout(timerID);
     instruments.forEach((instrument) => {
-      console.log("stopping", instrument);
+      //console.log("stopping", instrument);
       instrument.stopAllNotes();
     });
   };
@@ -219,42 +274,56 @@ export default function Home() {
       handlePlay();
     }, 200);
   };
+  const handleGridCellClick = (index, row) => {
+    setSelectedGridCell({ row: row, col: index });
+  };
 
-  // const GetGridCellDisplay = (sections, col) => {
-  //   for (let section of sections) {
-  //     const start = section.start;
-  //     const end = section.end;
-  //     if (col == start) return { class: styles.start, section: section };
-  //     if (col == end) return { class: styles.end, section: section };
-  //     if (col > start && col < end)
-  //       return { class: styles.middle, section: section };
-  //   }
-  // };
-  const renderGridCells = () => {
+  const renderGridCells = (row) => {
     const cellArray = Array.from({ length: NUM_GRIDS }, (_, index) => index);
 
     return (
       <>
         {cellArray.map((index) => {
-          return <div>{index}</div>;
+          return (
+            <div
+              className={`${styles.gridCell} ${
+                selectedGridCell !== null &&
+                selectedGridCell.col === index &&
+                selectedGridCell.row === row &&
+                styles.selectedGrid
+              }`}
+              onClick={() => {
+                handleGridCellClick(index, row);
+              }}
+            >
+              {row}
+              {index}
+            </div>
+          );
         })}
       </>
     );
   };
+  const handleSelectionClick = (id) => {
+    setSelectedSection(id);
+  };
   const renderSections = (section) => {
-    const currSection = sections[section];
+    const currSection = sections.get(section);
     if (currSection === null) {
       return <></>;
     }
     const currInstrument = instruments.get(currSection.instrument);
 
-    console.log(currInstrument);
+    //console.log(currInstrument, selectedSection, section.sectionId);
     return (
       <SectionMarker
+        key={section}
         section={currSection}
         instrument={currInstrument}
         updateInstrument={updateInstrument}
         timer={counter - 1}
+        selected={selectedSection === section}
+        handleClick={handleSelectionClick}
       />
     );
   };
@@ -285,35 +354,38 @@ export default function Home() {
             METRONOME {metronomeOn ? "ON" : "OFF"} {metronomeOn}
           </button>
           <p>{counter}</p>
+          <p>{selectedSection ? selectedSection : ""}</p>
           {isPlaying ? <p>PLAYING</p> : ""}{" "}
         </div>
         <div className={styles.trackWrapper}>
-          {tracks.map((track) => {
-            return (
-              <div
-                className={styles.trackContainer}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${NUM_GRIDS}, 3rem)`,
-                  position: "relative",
-                }}
-              >
-                {/* <div
-                  className={styles.sectionMarker}
-                  // style={{ gridColumn: "1 / 4" }}
+          <div className={styles.trackColumn}>
+            {tracks.map((track, index) => {
+              return (
+                <div className={styles.trackInfo}>
+                  track {instruments.get(index + 1).name}
+                </div>
+              );
+            })}
+          </div>
+          <div className={styles.gridContainer}>
+            {tracks.map((track) => {
+              return (
+                <div
+                  className={styles.trackContainer}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${NUM_GRIDS}, 3rem)`,
+                    position: "relative",
+                  }}
                 >
-                  Help
-                </div> */}
-                {renderGridCells()}
-                {track.sections.map((section) => {
-                  return renderSections(section);
-                })}
-                {/* {track.sections.map((section) => {
-                  <div>{section.sectionId}</div>;
-                })} */}
-              </div>
-            );
-          })}
+                  {renderGridCells(track.id)}
+                  {track.sections.map((section) => {
+                    return renderSections(section);
+                  })}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </main>
     </>

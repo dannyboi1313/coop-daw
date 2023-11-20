@@ -11,6 +11,7 @@ export default class SynthModel {
   constructor(audioctx, id) {
     this.synth = new Player(audioctx);
     this.instrumentId = id;
+    this.name = "Synth " + id;
   }
   getNotes = () => {
     return this.notes;

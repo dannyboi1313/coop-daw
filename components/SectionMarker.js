@@ -2,7 +2,14 @@ import styles from "@/styles/Home.module.css";
 import { useState } from "react";
 import SynthPlayer from "./instruments/SynthPlayer";
 
-const SectionMarker = ({ section, instrument, updateInstrument, timer }) => {
+const SectionMarker = ({
+  section,
+  instrument,
+  updateInstrument,
+  timer,
+  selected,
+  handleClick,
+}) => {
   const [displayEditor, setDisplayEditor] = useState(false);
   const handleDoubleClick = (event) => {
     event.preventDefault();
@@ -16,11 +23,14 @@ const SectionMarker = ({ section, instrument, updateInstrument, timer }) => {
   };
   return (
     <div
-      className={styles.sectionMarker}
+      className={`${styles.sectionMarker} ${selected && styles.selected}`}
       style={{
         gridColumn: `${section.startTime + 1} / span ${instrument.getSectionLength()}`, //prettier-ignore
       }}
       onMouseDown={preventHighlight}
+      onClick={() => {
+        handleClick(section.sectionId);
+      }}
       onDoubleClick={(event) => {
         handleDoubleClick(event);
       }}
