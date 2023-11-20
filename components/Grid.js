@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import styles from "@/styles/NoteGrid.module.css";
+import { mapRowToKey, getNoteCount } from "../utils/keyboardUtils";
 
 const MIN_NOTE_SIZE = 2;
+const NUM_KEYS = 72;
 
 const Grid = ({ instrumentNotes, updateNotes, timer }) => {
   const [gridSize, setGridSize] = useState(20);
 
   const [grid, setGrid] = useState(() => {
-    const newArray = new Array(10);
-    for (let i = 0; i < 10; i++) {
+    const newArray = new Array(NUM_KEYS);
+    for (let i = 0; i < NUM_KEYS; i++) {
       newArray[i] = new Array(gridSize).fill(null);
     }
     return newArray;
@@ -172,17 +174,45 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
   const getPosition = (cell, col) => {
     if (cell.start == col) return styles.start;
     if (cell.end == col) return styles.end;
-    return styles.green;
+    return styles.middle;
   };
   return (
     <div className={styles.gridWrapper} onContextMenu={handleGridRightClick}>
-      {timer}
       <div className={styles.gridContainer}>
         {/* Render the grid */}
         <div
-          className={styles.gridHeader}
+          className={styles.leftColumn}
           style={{
-            gridTemplateColumns: `repeat(${gridSize}, 3rem)`,
+            gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
+            gridTemplateColumns: `repeat(1,10rem)`,
+          }}
+        >
+          {/* Render the row labels */}
+          <div key={`row-label-start`} className="">
+            Row Header
+          </div>
+          {grid.map((row, rowIndex) => (
+            <div
+              key={`row-label-${rowIndex}`}
+              className={`${styles.rowLabel} ${
+                mapRowToKey(rowIndex)[1] == "#"
+                  ? styles.sharpOuter
+                  : styles.white
+              }`}
+            >
+              {mapRowToKey(rowIndex)[1] == "#" && (
+                <div className={styles.sharpInner}></div>
+              )}
+              {mapRowToKey(rowIndex)[1] !== "#" && mapRowToKey(rowIndex)}
+            </div>
+          ))}
+        </div>
+
+        <div
+          className={styles.grid}
+          style={{
+            gridTemplateColumns: `repeat(${gridSize}, 5rem)`,
+            gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
           }}
         >
           {grid[0].map((e, index) => {
@@ -196,13 +226,6 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
               </div>
             );
           })}
-        </div>
-        <div
-          className={styles.grid}
-          style={{
-            gridTemplateColumns: `repeat(${gridSize}, 3rem)`,
-          }}
-        >
           {grid.map((row, rowIndex) =>
             row.map((cell, colIndex) => (
               <div
@@ -216,16 +239,9 @@ const Grid = ({ instrumentNotes, updateNotes, timer }) => {
               >
                 {cell !== null && (
                   <div
-                    className={`${styles.selected} ${getPosition(
-                      cell,
-                      colIndex
-                    )}`}
-                    onMouseDown={() =>
-                      handleNoteClick(rowIndex, colIndex, cell)
-                    }
-                    onContextMenu={() => {
-                      handleNoteDelete(cell);
-                    }}
+                    className={`${styles.selected} ${getPosition(cell,colIndex)}`} //prettier-ignore
+                    onMouseDown={() => handleNoteClick(rowIndex, colIndex, cell)} //prettier-ignore
+                    onContextMenu={() => { handleNoteDelete(cell);}} //prettier-ignore
                   ></div>
                 )}
                 {cell && cell.end === colIndex && (

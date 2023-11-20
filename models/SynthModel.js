@@ -1,13 +1,11 @@
-import Error from "next/error";
 import Player from "../classes/Player";
-import Synth from "../classes/Synth";
-import NOTES from "../data/notes";
-
+import { mapRowToKey } from "../utils/keyboardUtils";
 export default class SynthModel {
   synth = null;
   name = "Test1";
   events = [[], [], [], []];
   notes = new Map([]);
+  sectionLength = 4;
 
   constructor(audioctx) {
     this.synth = new Player(audioctx);
@@ -28,57 +26,19 @@ export default class SynthModel {
     }
     for (let note of notes.values()) {
       this.notes.set(note.id, note);
-      const key = this.mapRowToKey(note.row);
+      const key = mapRowToKey(note.row);
       this.events[note.start].push({ type: "noteOn", note: key });
       this.events[note.end].push({ type: "noteOff", note: key });
+      if (note.end > this.sectionLength) {
+        this.sectionLength = note.end + 1;
+      }
     }
+
     return this;
   };
 
-  //   "C-3": 261.63,
-  //   "C#3": 277.18,
-  //   "D-3": 293.66,
-  //   "D#3": 311.13,
-  //   "E-3": 329.63,
-  //   "F-3": 349.23,
-  //   "F#3": 369.99,
-  //   "G-3": 392.0,
-  //   "G#3": 415.3,
-  //   "A-3": 440.0,
-  //   "A#3": 466.16,
-  //   "B-3": 493.88,
-  //   "C-4": 523.25,
-  mapRowToKey = (key) => {
-    switch (key) {
-      case 12:
-        return "C-3";
-      case 11:
-        return "C#3";
-      case 10:
-        return "D-3";
-      case 9:
-        return "D#3";
-      case 8:
-        return "E-3";
-      case 7:
-        return "F-3";
-      case 6:
-        return "F#3";
-      case 5:
-        return "G-3";
-      case 4:
-        return "G#3";
-      case 3:
-        return "A-3";
-      case 2:
-        return "A#3";
-      case 1:
-        return "B-3";
-      case 0:
-        return "C-4";
-      default:
-        throw Error;
-    }
+  getSectionLength = () => {
+    return this.sectionLength;
   };
 
   handleEvent = (event, time = 0) => {

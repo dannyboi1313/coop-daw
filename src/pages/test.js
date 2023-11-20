@@ -1,17 +1,13 @@
 import Head from "next/head";
-import Image from "next/image";
 import { Inter, Play } from "next/font/google";
 import styles from "@/styles/Home.module.css";
-import Keyboard from "../../components/keyboard";
-import App from "../../components/UIElements/key";
-import Synth from "../../classes/Synth";
 import { useState, useEffect, useRef } from "react";
 import Player from "../../classes/Player";
 const inter = Inter({ subsets: ["latin"] });
 import { useAudioContext } from "../../providers/AudioContextContext";
-import NOTES from "../../data/notes";
 import SynthPlayer from "../../components/instruments/SynthPlayer";
 import SynthModel from "../../models/SynthModel";
+import SectionMarker from "../../components/SectionMarker";
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
@@ -51,9 +47,13 @@ export default function Home() {
     //setAudioContext(ac);
     const s = new SynthModel(audioContext);
     setInstrument(s);
-    setSections([
-      { sectionId: 1, startTime: 0, instrument: s },
-      { sectionId: 2, startTime: 4, instrument: s },
+    setSections({
+      1: { sectionId: 1, startTime: 0, instrument: s },
+      2: { sectionId: 2, startTime: 8, instrument: s },
+    });
+    setTracks([
+      { id: 1, volumn: 80, sections: [1, 2] },
+      { id: 2, volumn: 80, sections: [] },
     ]);
     setEventQueue([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]); //prettier-ignore
     setLoading(false);
@@ -77,7 +77,8 @@ export default function Home() {
   const updateEventQueue = () => {
     const queue = emptyQueue(eventQueue);
 
-    sections.map((section) => {
+    tracks[0].sections.map((sec) => {
+      const section = sections[sec];
       const startTime = section.startTime;
       const events = section.instrument.getEventList();
       events.map((event, index) => {
@@ -184,7 +185,7 @@ export default function Home() {
     scheduler(); // kick off scheduling
   };
   //const synth = new SynthModel(audioContext);
-
+  const NUM_GRIDS = 24;
   const handleStop = () => {
     setIsPlaying(false);
     window.clearTimeout(timerID);
@@ -196,6 +197,42 @@ export default function Home() {
     setTimeout(() => {
       handlePlay();
     }, 200);
+  };
+
+  // const GetGridCellDisplay = (sections, col) => {
+  //   for (let section of sections) {
+  //     const start = section.start;
+  //     const end = section.end;
+  //     if (col == start) return { class: styles.start, section: section };
+  //     if (col == end) return { class: styles.end, section: section };
+  //     if (col > start && col < end)
+  //       return { class: styles.middle, section: section };
+  //   }
+  // };
+  const renderGridCells = () => {
+    const cellArray = Array.from({ length: NUM_GRIDS }, (_, index) => index);
+
+    return (
+      <>
+        {cellArray.map((index) => {
+          return <div>{index}</div>;
+        })}
+      </>
+    );
+  };
+  const renderSections = (section) => {
+    const currSection = sections[section];
+    console.log("BEFORE SECTION", currSection);
+    if (currSection === null) {
+      return <></>;
+    }
+    return (
+      <SectionMarker
+        section={currSection}
+        updateInstrument={updateInstrument}
+        timer={counter - 1}
+      />
+    );
   };
   return (
     <>
@@ -226,32 +263,29 @@ export default function Home() {
           <p>{counter}</p>
           {isPlaying ? <p>PLAYING</p> : ""}{" "}
         </div>
-        <div className="w-100 relative">
-          <SynthPlayer
-            notes={instrument.getNotes()}
-            updateNotes={updateInstrument}
-            timer={counter - 1}
-          />
-          <div>
-            {instrument.name}
-            {instrument.getEventList().map((event, index) => {
-              return (
-                <div>
-                  {index}
-                  {event.map((e) => {
-                    return (
-                      <p>
-                        {e.type}:{e.note}
-                      </p>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <div className={styles.trackWrapper}>
+          {tracks.map((track) => {
+            return (
+              <div
+                className={styles.trackContainer}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `repeat(${NUM_GRIDS},3rem)`,
+                  position: "relative",
+                }}
+              >
+                {renderGridCells()}
 
-        {/* <Keyboard /> */}
+                {track.sections.map((section) => {
+                  return renderSections(section);
+                })}
+                {/* {track.sections.map((section) => {
+                  <div>{section.sectionId}</div>;
+                })} */}
+              </div>
+            );
+          })}
+        </div>
       </main>
     </>
   );

@@ -1,6 +1,5 @@
 // Synth class
-import sequencerTimer from "./Sequencer";
-import NOTES from "../data/notes";
+import { getNoteFrequency } from "../utils/keyboardUtils";
 
 const effectsSettings = {
   // Oscillator Wave Types
@@ -54,100 +53,6 @@ const effectsSettings = {
   outputGainMin: 0,
   outputGainMax: 3,
 };
-
-// class Player {
-//   activeNotes = new Map();
-//   constructor(audioContext) {
-//     this.audioContext = audioContext;
-//     // Start the oscillator
-//     let newLFO = audioContext.createOscillator();
-//     newLFO.type = effectsSettings.LFOTypeDefault.toLowerCase();
-//     newLFO.frequency.value = effectsSettings.LFOFrequencyDefault;
-//     this.LFOFrequency = newLFO.frequency.value;
-//     this.LFORef = newLFO;
-//     this.LFORef.start();
-//   }
-
-//   playNote(note) {
-//     // Create VCO (Base Tone Oscillator)
-//     let VCO = this.audioContext.createOscillator();
-//     VCO.type = effectsSettings.VCOTypeDefault;
-//     VCO.frequency.value = NOTES[note.note];
-//     VCO.start(note.time);
-
-//     // Create VCA (Base Tone Gain)
-//     let VCA = this.audioContext.createGain();
-//     VCA.gain.value = (effectsSettings.VCAGainDefault / 127) * 50;
-//     VCO.VCA = VCA;
-
-//     // Create LFO Gain
-//     let LFOGain = this.audioContext.createGain();
-//     LFOGain.gain.value = effectsSettings.LFOGainDefault;
-//     this.LFORef.connect(LFOGain);
-//     this.LFORef.LFOGain = LFOGain;
-
-//     // Add LFO to Object
-//     this.LFORef.LFOGain.gain.value = effectsSettings.LFOGainDefault;
-//     this.LFORef.frequency.value = effectsSettings.LFOFrequencyDefault;
-//     this.LFORef.type = effectsSettings.LFOTypeDefault.toLowerCase();
-//     VCO.LFO = this.LFORef.current;
-
-//     // Create VCF
-//     let VCF = new BiquadFilterNode(this.audioContext, {
-//       type: effectsSettings.VCFTypeDefault.toLowerCase(),
-//       q: effectsSettings.VCFQDefault,
-//       frequency: effectsSettings.VCFFrequencyDefault,
-//       gain: effectsSettings.VCFGainDefault,
-//     });
-//     VCO.VCF = VCF;
-
-//     // Create Output Gain
-//     let output = this.audioContext.createGain();
-//     output.gain.value = effectsSettings.outputGainDefault;
-//     VCO.output = output;
-
-//     // Patch LFO
-//     switch (effectsSettings.LFOPatchDefault) {
-//       case "Cutoff":
-//         this.LFORef.LFOGain.connect(VCF.frequency);
-//         break;
-//       case "VCO":
-//         this.LFORef.LFOGain.connect(VCO.frequency);
-//         break;
-//       default:
-//         this.LFORef.LFOGain.connect(VCF.frequency);
-//     }
-//     // Connect Modules
-//     VCO.connect(VCA);
-//     VCA.connect(VCF);
-//     VCF.connect(output);
-//     output.connect(this.audioContext.destination);
-
-//     this.activeNotes.set(note.note, VCO);
-
-//     const currentOscillator = VCO; //this.activeNotes[note.note];
-
-//     // Fade Out VCA Gain
-//     let fadeOut = 0.03;
-//     const currentOutputGain = currentOscillator.output;
-//     currentOutputGain.gain.setValueAtTime(
-//       currentOutputGain.gain.value,
-//       note.time + note.duration
-//     );
-//     currentOutputGain.gain.exponentialRampToValueAtTime(
-//       0.00001,
-//       note.time + note.duration + fadeOut
-//     );
-
-//     // Stop Oscillator
-
-//     //currentOscillator.stop(note.time + note.duration);
-
-//     // Remove From Active Notes
-//     delete this.activeNotes[note];
-//   }
-// }
-
 class Player {
   static TYPES = ["sine", "square", "triangle", "sawtooth"];
   static TYPES_ABBR = ["sin", "squ", "tri", "saw"];
@@ -314,7 +219,7 @@ class Player {
 
   noteOn = (note, t = 0) => {
     Player.AC.resume();
-    const freq = NOTES[note];
+    const freq = getNoteFrequency(note);
 
     let nodes = {};
 
