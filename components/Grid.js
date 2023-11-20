@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import styles from "@/styles/NoteGrid.module.css";
 import { mapRowToKey, getNoteCount } from "../utils/keyboardUtils";
 
-const MIN_NOTE_SIZE = 2;
+const MIN_NOTE_SIZE = 1;
 const NUM_KEYS = 72;
+const DEFAULT_NOTE_SIZE = 1;
 
 const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const [gridSize, setGridSize] = useState(20);
@@ -36,7 +37,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     }
     const currNotes = notes;
     const start = col;
-    const end = start + 2;
+    const end = start + DEFAULT_NOTE_SIZE;
     const id = currNotes.size + 1;
     currNotes.set(id, { id: id, row: row, start: start, end: end });
 

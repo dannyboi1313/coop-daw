@@ -26,6 +26,7 @@ export default class SynthModel {
   updateEvents = (notes, size) => {
     console.log("UPDATING EVENTS CALLED");
     this.name = "Updated Name";
+    let currMax = 4;
     this.events = [...Array(size)].map((e) => Array());
     for (let i; i < size; i++) {
       this.events[i] = new Array();
@@ -35,10 +36,11 @@ export default class SynthModel {
       const key = mapRowToKey(note.row);
       this.events[note.start].push({ type: "noteOn", note: key });
       this.events[note.end].push({ type: "noteOff", note: key });
-      if (note.end > this.sectionLength) {
-        this.sectionLength = note.end + 1;
+      if (note.end > currMax) {
+        currMax = note.end + 1;
       }
     }
+    this.sectionLength = currMax;
 
     return this;
   };
@@ -60,6 +62,8 @@ export default class SynthModel {
     }
   };
   stopAllNotes() {
+    console.log("Command sent.. trying to turn off");
+    this.synth.allNotesOff();
     this.events.forEach((event) => {
       event.forEach((e) => {
         if (e.type == "noteOff") {

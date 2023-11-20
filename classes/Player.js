@@ -343,6 +343,14 @@ class Player {
     osc.connect(nodes.adsr);
     return osc;
   };
+
+  allNotesOff = () => {
+    console.log("command Recieved, active notes", this.activeNotes.keys());
+    for (const key of this.activeNotes.keys()) {
+      console.log("Key:", key);
+      this.noteOff(key, Player.AC.currentTime);
+    }
+  };
 }
 
 export default Player;

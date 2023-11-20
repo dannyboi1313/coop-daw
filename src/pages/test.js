@@ -15,7 +15,7 @@ export default function Home() {
   const [counter, setCounter] = useState(0);
   const [loading, setLoading] = useState(true);
   const [instrument, setInstrument] = useState(null);
-  const [instruments, setInstruments] = useState(null);
+  const [instruments, setInstruments] = useState(new Map());
   const [audioContext, setAudioContext] = useState(useAudioContext());
   const [masterSchedule, setMasterSchedule] = useState(
     [null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,]) //prettier-ignore
@@ -49,11 +49,14 @@ export default function Home() {
     const s = new SynthModel(audioContext, 1);
     const s2 = new SynthModel(audioContext, 2);
     setInstrument(s);
-    setInstruments({ 1: s, 2: s2 });
+    const i = instruments;
+    i.set(1, s);
+    i.set(2, s2);
+    setInstruments(i);
     setSections({
       1: { sectionId: 1, startTime: 0, instrument: 1 },
       2: { sectionId: 2, startTime: 8, instrument: 1 },
-      3: { sectionId: 3, startTime: 1, instrument: 2 },
+      3: { sectionId: 3, startTime: 0, instrument: 2 },
       4: { sectionId: 4, startTime: 4, instrument: 2 },
       5: { sectionId: 5, startTime: 8, instrument: 2 },
       6: { sectionId: 6, startTime: 12, instrument: 2 },
@@ -69,7 +72,7 @@ export default function Home() {
   // useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying]);
 
   const updateInstrument = (notes, size, instrumentId) => {
-    const oldInstrument = instruments[instrumentId];
+    const oldInstrument = instruments.get(instrumentId);
     const updated = oldInstrument.updateEvents(notes, size);
     const oldList = instruments;
     oldList[instrumentId] = updated;
@@ -91,7 +94,7 @@ export default function Home() {
       track.sections.map((sec) => {
         const section = sections[sec];
         const startTime = section.startTime;
-        const instrument = instruments[section.instrument];
+        const instrument = instruments.get(section.instrument);
         console.log("TESTING", instrument);
         const events = instrument.getEventList();
         events.map((event, index) => {
@@ -204,7 +207,10 @@ export default function Home() {
   const handleStop = () => {
     setIsPlaying(false);
     window.clearTimeout(timerID);
-    instrument.stopAllNotes();
+    instruments.forEach((instrument) => {
+      console.log("stopping", instrument);
+      instrument.stopAllNotes();
+    });
   };
   const handleMetronomeClick = () => {
     handleStop();
@@ -240,9 +246,9 @@ export default function Home() {
     if (currSection === null) {
       return <></>;
     }
-    const currInstrument = instruments[currSection.instrument];
+    const currInstrument = instruments.get(currSection.instrument);
 
-    //console.log(currInstrument);
+    console.log(currInstrument);
     return (
       <SectionMarker
         section={currSection}
@@ -288,12 +294,17 @@ export default function Home() {
                 className={styles.trackContainer}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: `repeat(${NUM_GRIDS},3rem)`,
+                  gridTemplateColumns: `repeat(${NUM_GRIDS}, 3rem)`,
                   position: "relative",
                 }}
               >
+                {/* <div
+                  className={styles.sectionMarker}
+                  // style={{ gridColumn: "1 / 4" }}
+                >
+                  Help
+                </div> */}
                 {renderGridCells()}
-
                 {track.sections.map((section) => {
                   return renderSections(section);
                 })}

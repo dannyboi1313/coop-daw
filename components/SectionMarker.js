@@ -4,8 +4,12 @@ import SynthPlayer from "./instruments/SynthPlayer";
 
 const SectionMarker = ({ section, instrument, updateInstrument, timer }) => {
   const [displayEditor, setDisplayEditor] = useState(false);
-  const handleDoubleClick = () => {
+  const handleDoubleClick = (event) => {
+    event.preventDefault();
     setDisplayEditor(true);
+  };
+  const preventHighlight = (e) => {
+    e.preventDefault();
   };
   const handleCloseEditor = () => {
     setDisplayEditor(false);
@@ -14,11 +18,13 @@ const SectionMarker = ({ section, instrument, updateInstrument, timer }) => {
     <div
       className={styles.sectionMarker}
       style={{
-        gridColumn: `${section.startTime} / span ${instrument.getSectionLength() *2}`, //prettier-ignore
+        gridColumn: `${section.startTime + 1} / span ${instrument.getSectionLength()}`, //prettier-ignore
       }}
-      onDoubleClick={handleDoubleClick}
+      onMouseDown={preventHighlight}
+      onDoubleClick={(event) => {
+        handleDoubleClick(event);
+      }}
     >
-      Your Content {instrument.getSectionLength()}
       {displayEditor && (
         <SynthPlayer
           instrument={instrument}
