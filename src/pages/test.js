@@ -27,7 +27,7 @@ export default function Home() {
   const [metronomeOn, setMetronomeOn] = useState(false);
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedGridCell, setSelectedGridCell] = useState(null);
-  const [copiedSection, setCopiedSection] = useState(null);
+  const [copiedSectionId, setCopiedSectionId] = useState(null);
   const [draggingSection, setDraggingSection] = useState(null);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedSection, sections, selectedGridCell, copiedSection, draggingSection]); //prettier-ignore
+  }, [selectedSection, sections, selectedGridCell, copiedSectionId, draggingSection]); //prettier-ignore
   //KeyBindings
   const handleKeyDown = (event) => {
     // Handle key events here
@@ -50,16 +50,17 @@ export default function Home() {
       selectedSection !== null
     ) {
       // Perform your desired action here
-      setCopiedSection(selectedSection);
+      setCopiedSectionId(selectedSection);
       console.log("Ctrl + C pressed");
     }
     if (
       event.key === "v" &&
       (event.ctrlKey || event.metaKey) &&
-      copiedSection !== null
+      copiedSectionId !== null
     ) {
       console.log("Pasted");
-      addSection(copiedSection, selectedGridCell.col);
+      const copiedSection = sections.get(copiedSectionId);
+      addSection(copiedSection.track, copiedSectionId, selectedGridCell.col);
     }
   };
 
@@ -91,8 +92,8 @@ export default function Home() {
     i.set(1, s);
     i.set(2, s2);
     setInstruments(i);
-    sections.set(1, { sectionId: 1, startTime: 0, instrument: 1 });
-    sections.set(2, { sectionId: 2, startTime: 0, instrument: 2 });
+    sections.set(1, { sectionId: 1, track: 1, startTime: 0, instrument: 1 });
+    sections.set(2, { sectionId: 2, track: 2, startTime: 0, instrument: 2 });
     setTracks([
       { id: 1, volumn: 80, sections: [1] },
       { id: 2, volumn: 80, sections: [2] },
@@ -140,20 +141,37 @@ export default function Home() {
     setEventQueue(queue);
   };
 
-  const addSection = (id, start) => {
+  const addSection = (track, id, start) => {
     const newId = sections.size + 1;
     const currSections = new Map(sections);
-    const sectionInstrument = instruments.get(id);
-    console.log("adding note", id, start, newId, sectionInstrument);
+    const sectionInstrument = instruments.get(track);
+    console.log("adding note", track, start, newId, sectionInstrument);
     currSections.set(newId, {
       sectionId: newId,
+      track: track,
       startTime: start,
-      instrument: id,
+      instrument: track,
     });
     setSections(currSections);
     const tracksCopy = tracks;
-    tracksCopy[id - 1].sections.push(newId);
+    tracksCopy[track - 1].sections.push(newId);
     setTracks(tracksCopy);
+  };
+
+  const deleteSection = (id, start) => {
+    const currSections = new Map(sections);
+    const sectionInstrument = instruments.get(id);
+    const sectionToDelete = currSections.get(id);
+    console.log("Deleting", id, sectionToDelete, currSections);
+    const tracksCopy = tracks;
+    tracksCopy[sectionToDelete.track - 1].sections = tracksCopy[
+      sectionToDelete.track - 1
+    ].sections.filter((a) => {
+      return a !== id;
+    });
+    setTracks(tracksCopy);
+    currSections.delete(id);
+    setSections(currSections);
   };
 
   let tempo = 120.0;
@@ -274,7 +292,11 @@ export default function Home() {
   const handleSelectionClick = (id, col) => {
     //setSelectedSection(id);
   };
-  const handleSectionMouseDown = (id, col) => {
+  const preventDefaults = (e) => {
+    e.preventDefault();
+  };
+  const handleSectionMouseDown = (event, id, col) => {
+    event.preventDefault();
     if (
       selectedSection === null ||
       (selectedSection !== null && selectedSection !== id)
@@ -349,6 +371,7 @@ export default function Home() {
         handleClick={handleSelectionClick}
         handleSectionMouseDown={handleSectionMouseDown}
         handleSectionRelease={handleSectionRelease}
+        handleDelete={deleteSection}
       />
     );
   };
@@ -360,7 +383,7 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main}`}>
+      <main className={`${styles.main}`} onContextMenu={preventDefaults}>
         <div className="flex flex-row w-100 ml-1 justify-center">
           <button onClick={handlePlay}>Play All</button>
           <button onClick={handleStop}>STOP</button>
@@ -368,6 +391,7 @@ export default function Home() {
             onClick={() => {
               setCounter(counter + 1);
             }}
+            onMouseDown={preventDefaults}
           >
             WOOOOHOOO
           </button>
@@ -402,6 +426,7 @@ export default function Home() {
                     gridTemplateColumns: `repeat(${NUM_GRIDS}, 3rem)`,
                     position: "relative",
                   }}
+                  onMouseDown={preventDefaults}
                 >
                   {renderGridCells(track.id)}
                   {track.sections.map((section) => {

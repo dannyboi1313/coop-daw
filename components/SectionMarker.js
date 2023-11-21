@@ -11,6 +11,7 @@ const SectionMarker = ({
   handleClick,
   handleSectionMouseDown,
   handleSectionRelease,
+  handleDelete,
 }) => {
   const [displayEditor, setDisplayEditor] = useState(false);
   const handleDoubleClick = (event) => {
@@ -19,7 +20,7 @@ const SectionMarker = ({
   };
   const handleMouseDown = (e) => {
     e.preventDefault();
-    handleSectionMouseDown(section.sectionId);
+    handleSectionMouseDown(e, section.sectionId);
   };
   const handleMouseUp = (e) => {
     handleSectionRelease(section);
@@ -40,6 +41,9 @@ const SectionMarker = ({
       }}
       onDoubleClick={(event) => {
         handleDoubleClick(event);
+      }}
+      onContextMenu={() => {
+        handleDelete(section.sectionId);
       }}
     >
       {displayEditor && (
