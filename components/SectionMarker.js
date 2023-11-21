@@ -9,14 +9,20 @@ const SectionMarker = ({
   timer,
   selected,
   handleClick,
+  handleSectionMouseDown,
+  handleSectionRelease,
 }) => {
   const [displayEditor, setDisplayEditor] = useState(false);
   const handleDoubleClick = (event) => {
     event.preventDefault();
     setDisplayEditor(true);
   };
-  const preventHighlight = (e) => {
+  const handleMouseDown = (e) => {
     e.preventDefault();
+    handleSectionMouseDown(section.sectionId);
+  };
+  const handleMouseUp = (e) => {
+    handleSectionRelease(section);
   };
   const handleCloseEditor = () => {
     setDisplayEditor(false);
@@ -27,7 +33,8 @@ const SectionMarker = ({
       style={{
         gridColumn: `${section.startTime + 1} / span ${instrument.getSectionLength()}`, //prettier-ignore
       }}
-      onMouseDown={preventHighlight}
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
       onClick={() => {
         handleClick(section.sectionId);
       }}
@@ -48,14 +55,3 @@ const SectionMarker = ({
 };
 
 export default SectionMarker;
-
-{
-  /* <div
-  className={styles.sectionMarker}
-  style={{
-    gridColumn: `${currSection.startTime} / span ${currSection.instrument.getSectionLength()}`, //prettier-ignore
-  }}
->
-  Your Content {currSection.instrument.getSectionLength()}
-</div>; */
-}

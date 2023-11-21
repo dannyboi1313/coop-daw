@@ -28,6 +28,7 @@ export default function Home() {
   const [selectedSection, setSelectedSection] = useState(null);
   const [selectedGridCell, setSelectedGridCell] = useState(null);
   const [copiedSection, setCopiedSection] = useState(null);
+  const [draggingSection, setDraggingSection] = useState(null);
 
   useEffect(() => {
     // Attach the event listener when the component mounts
@@ -37,11 +38,11 @@ export default function Home() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedSection, selectedGridCell, copiedSection]);
+  }, [selectedSection, sections, selectedGridCell, copiedSection, draggingSection]); //prettier-ignore
   //KeyBindings
   const handleKeyDown = (event) => {
     // Handle key events here
-    console.log(event.key, selectedSection);
+    //console.log(event.key, selectedSection);
 
     if (
       event.key === "c" &&
@@ -100,15 +101,7 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {}, [
-    loading,
-    instrument,
-    counter,
-    metronomeOn,
-    isPlaying,
-    sections,
-    tracks,
-  ]);
+  useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying, sections, tracks,]); //prettier-ignore
 
   const updateInstrument = (notes, size, instrumentId) => {
     const oldInstrument = instruments.get(instrumentId);
@@ -149,7 +142,7 @@ export default function Home() {
 
   const addSection = (id, start) => {
     const newId = sections.size + 1;
-    const currSections = sections;
+    const currSections = new Map(sections);
     const sectionInstrument = instruments.get(id);
     console.log("adding note", id, start, newId, sectionInstrument);
     currSections.set(newId, {
@@ -278,6 +271,35 @@ export default function Home() {
     setSelectedGridCell({ row: row, col: index });
   };
 
+  const handleSelectionClick = (id, col) => {
+    //setSelectedSection(id);
+  };
+  const handleSectionMouseDown = (id, col) => {
+    if (
+      selectedSection === null ||
+      (selectedSection !== null && selectedSection !== id)
+    ) {
+      setSelectedSection(id);
+    }
+    setDraggingSection({ id: id, clickX: id, clickY: col });
+  };
+  const handleSectionRelease = () => {
+    setDraggingSection(null);
+  };
+  const handleSectionDrag = (col, sectionId) => {
+    if (draggingSection !== null) {
+      const currSection = sections.get(draggingSection.id);
+      const currSections = new Map(sections);
+      if (col > currSection.startTime) {
+        currSection.startTime = currSection.startTime += 1;
+      } else {
+        currSection.startTime = col;
+      }
+      currSections.set(draggingSection.id, currSection);
+      setSections(currSections);
+    }
+  };
+
   const renderGridCells = (row) => {
     const cellArray = Array.from({ length: NUM_GRIDS }, (_, index) => index);
 
@@ -295,6 +317,9 @@ export default function Home() {
               onClick={() => {
                 handleGridCellClick(index, row);
               }}
+              onMouseMove={() => {
+                handleSectionDrag(index, row);
+              }}
             >
               {row}
               {index}
@@ -304,9 +329,7 @@ export default function Home() {
       </>
     );
   };
-  const handleSelectionClick = (id) => {
-    setSelectedSection(id);
-  };
+
   const renderSections = (section) => {
     const currSection = sections.get(section);
     if (currSection === null) {
@@ -324,6 +347,8 @@ export default function Home() {
         timer={counter - 1}
         selected={selectedSection === section}
         handleClick={handleSelectionClick}
+        handleSectionMouseDown={handleSectionMouseDown}
+        handleSectionRelease={handleSectionRelease}
       />
     );
   };
