@@ -8,6 +8,16 @@ import { useAudioContext } from "../../providers/AudioContextContext";
 import SynthPlayer from "../../components/instruments/SynthPlayer";
 import SynthModel from "../../models/SynthModel";
 import SectionMarker from "../../components/SectionMarker";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faPlay,
+  faStop,
+  faRepeat,
+  faBackwardStep,
+  faAdd,
+} from "@fortawesome/free-solid-svg-icons";
+
+const NUM_GRIDS = 80;
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
@@ -92,13 +102,27 @@ export default function Home() {
     i.set(1, s);
     i.set(2, s2);
     setInstruments(i);
-    sections.set(1, { sectionId: 1, track: 1, startTime: 0, instrument: 1 });
-    sections.set(2, { sectionId: 2, track: 2, startTime: 0, instrument: 2 });
+    sections.set(1, {
+      sectionId: 1,
+      track: 1,
+      startTime: 0,
+      instrument: 1,
+    });
+    sections.set(2, {
+      sectionId: 2,
+      track: 2,
+      startTime: 0,
+      instrument: 2,
+    });
     setTracks([
       { id: 1, volumn: 80, sections: [1] },
       { id: 2, volumn: 80, sections: [2] },
     ]);
-    setEventQueue([[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]]); //prettier-ignore
+    const eq = [];
+    for (let i = 0; i < NUM_GRIDS; i++) {
+      eq.push([]);
+    }
+    setEventQueue(eq); //prettier-ignore
     setLoading(false);
   }, []);
 
@@ -141,20 +165,20 @@ export default function Home() {
     setEventQueue(queue);
   };
 
-  const addSection = (track, id, start) => {
+  const addSection = (trackId, id, start) => {
     const newId = sections.size + 1;
     const currSections = new Map(sections);
-    const sectionInstrument = instruments.get(track);
-    console.log("adding note", track, start, newId, sectionInstrument);
+    const sectionInstrument = instruments.get(trackId);
+    console.log("adding note", trackId, start, newId, sectionInstrument);
     currSections.set(newId, {
       sectionId: newId,
-      track: track,
+      track: trackId,
       startTime: start,
-      instrument: track,
+      instrument: trackId,
     });
     setSections(currSections);
     const tracksCopy = tracks;
-    tracksCopy[track - 1].sections.push(newId);
+    tracksCopy[trackId - 1].sections.push(newId);
     setTracks(tracksCopy);
   };
 
@@ -215,12 +239,12 @@ export default function Home() {
   let currentNote = 0; // The note we are currently playing
   let nextNoteTime = 0.0; // when the next note is due.
   function nextNote() {
-    const secondsPerBeat = 60.0 / tempo;
+    const secondsPerBeat = 60.0 / tempo / 4;
 
     nextNoteTime += secondsPerBeat; // Add beat length to last beat time
 
     // Advance the beat number, wrap to zero when reaching 4
-    currentNote = (currentNote + 1) % 20;
+    currentNote = (currentNote + 1) % NUM_GRIDS;
     setCounter(currentNote);
   }
 
@@ -231,7 +255,7 @@ export default function Home() {
     updateEventQueue();
     //console.log("Event Queue", eventQueue);
 
-    if (getMetronome() === true) {
+    if (getMetronome() === true && beatNumber % 4 == 0) {
       //console.log("Scheduled some metronome", metronomeOn, time);
       playSample(dtmf, time);
     }
@@ -269,7 +293,7 @@ export default function Home() {
     scheduler(); // kick off scheduling
   };
   //const synth = new SynthModel(audioContext);
-  const NUM_GRIDS = 24;
+
   const handleStop = () => {
     setIsPlaying(false);
     window.clearTimeout(timerID);
@@ -287,6 +311,58 @@ export default function Home() {
   };
   const handleGridCellClick = (index, row) => {
     setSelectedGridCell({ row: row, col: index });
+  };
+  const findNextOpenSlot = (track) => {
+    console.log("Finding next open slot", track, sections);
+    //If track is empyt, just add it to the first slot
+    if (track.sections.length === 0) {
+      return 0;
+    }
+    //Sort sections by the start time
+    const sortedTracks = track.sections.sort(
+      (a, b) => sections.get(a).startTime - sections.get(b).startTime
+    );
+    console.log(sortedTracks);
+    const currInstrument = instruments.get(
+      sections.get(sortedTracks[0]).instrument
+    );
+    const minLength = currInstrument.getSectionLength(); //prettier-ignore
+    //Do some fancy mathing to check if the distance between any of the sections is large enough to fit a new section
+    console.log(minLength);
+    for (let i = 0; i < sortedTracks.length - 1; i++) {
+      console.log(
+        sortedTracks[i],
+        sections.get(sortedTracks[i]),
+        sections.get(sortedTracks[i + 1])
+      );
+      if (
+        (sections.get(sortedTracks[i+1]).startTime)  - sections.get(sortedTracks[i]).startTime  > (minLength * 2) //prettier-ignore
+      ) {
+        return sections.get(sortedTracks[i]).startTime + minLength;
+      }
+    }
+    // Make sure we catch the cases from the endTime of the last section to the end of the grid
+    console.log(
+      "Last Check",
+      sortedTracks[sortedTracks.length - 1],
+      sections.get(sortedTracks[sortedTracks.length - 1])
+    );
+    if (
+      NUM_GRIDS - sections.get(sortedTracks[sortedTracks.length - 1]).startTime > minLength * 2 //prettier-ignore
+    ) {
+      return (
+        sections.get(sortedTracks[sortedTracks.length - 1]).startTime + minLength //prettier-ignore
+      );
+    }
+    //No place to enter, return -1
+    return -1;
+  };
+
+  const handleAddSectionClick = (track) => {
+    const indexToAdd = findNextOpenSlot(track);
+    console.log("FOUND AT INDEX:", indexToAdd);
+    if (indexToAdd === -1) return;
+    addSection(track.id, track.id, indexToAdd);
   };
 
   const handleSelectionClick = (id, col) => {
@@ -342,16 +418,27 @@ export default function Home() {
               onMouseMove={() => {
                 handleSectionDrag(index, row);
               }}
-            >
-              {row}
-              {index}
+            ></div>
+          );
+        })}
+      </>
+    );
+  };
+  const renderGridMarker = () => {
+    const cellArray = Array.from({ length: NUM_GRIDS }, (_, index) => index);
+
+    return (
+      <>
+        {cellArray.map((index) => {
+          return (
+            <div className={`${styles.gridCell}}`}>
+              {index % 16 === 0 && index / 16 + (index % 16) + 1}
             </div>
           );
         })}
       </>
     );
   };
-
   const renderSections = (section) => {
     const currSection = sections.get(section);
     if (currSection === null) {
@@ -383,28 +470,52 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
-      <main className={`${styles.main}`} onContextMenu={preventDefaults}>
-        <div className="flex flex-row w-100 ml-1 justify-center">
-          <button onClick={handlePlay}>Play All</button>
-          <button onClick={handleStop}>STOP</button>
-          <button
-            onClick={() => {
-              setCounter(counter + 1);
-            }}
-            onMouseDown={preventDefaults}
-          >
-            WOOOOHOOO
-          </button>
-          <button
-            onClick={() => {
-              handleMetronomeClick();
-            }}
-          >
-            METRONOME {metronomeOn ? "ON" : "OFF"} {metronomeOn}
-          </button>
-          <p>{counter}</p>
-          <p>{selectedSection ? selectedSection : ""}</p>
-          {isPlaying ? <p>PLAYING</p> : ""}{" "}
+      <main
+        className={`${styles.main} bg-darkest text-light`}
+        onContextMenu={preventDefaults}
+      >
+        <div className="flex flex-row w-100 justify-between align-center bg-darker h-5 p-1">
+          <div className="t-b">Title - Project Name</div>
+          <div className="flex h-100 justify-around ps-1">
+            <div className="bg-grey-dark h-100 flex flex-row justify-between align-center rounded-1 ps-1">
+              <button className={styles.buttonControl}>
+                <FontAwesomeIcon icon={faBackwardStep} size="xl" />
+              </button>
+              <div className="vert-divider"></div>
+              <button onClick={handlePlay} className={styles.buttonControl}>
+                <FontAwesomeIcon icon={faPlay} size="xl" />
+              </button>
+              <div className="vert-divider"></div>
+              <button onClick={handleStop} className={styles.buttonControl}>
+                <FontAwesomeIcon icon={faStop} size="xl" />
+              </button>
+              <div className="vert-divider"></div>
+              <button className={styles.buttonControl}>
+                <FontAwesomeIcon icon={faRepeat} size="xl" />
+              </button>
+            </div>
+            <div className="bg-darkest ml-1 w-8 flex align-center">
+              <p>{counter}</p>
+            </div>
+            <button
+              onClick={() => {
+                handleMetronomeClick();
+              }}
+            >
+              METRONOME {metronomeOn ? "ON" : "OFF"} {metronomeOn}
+            </button>
+            <button
+              onClick={() => {
+                setCounter(counter + 1);
+              }}
+              onMouseDown={preventDefaults}
+            >
+              WOOOOHOOO
+            </button>
+            <div>Master Volume</div>
+          </div>
+
+          <div>Icons Share</div>
         </div>
         <div className={styles.trackWrapper}>
           <div className={styles.trackColumn}>
@@ -412,18 +523,34 @@ export default function Home() {
               return (
                 <div className={styles.trackInfo}>
                   track {instruments.get(index + 1).name}
+                  <button
+                    onClick={() => {
+                      handleAddSectionClick(track);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faAdd} size="xl" />
+                  </button>
                 </div>
               );
             })}
           </div>
           <div className={styles.gridContainer}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, 1rem)`,
+                position: "relative",
+              }}
+            >
+              {renderGridMarker()}
+            </div>
             {tracks.map((track) => {
               return (
                 <div
                   className={styles.trackContainer}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(${NUM_GRIDS}, 3rem)`,
+                    gridTemplateColumns: `repeat(${NUM_GRIDS}, 1rem)`,
                     position: "relative",
                   }}
                   onMouseDown={preventDefaults}

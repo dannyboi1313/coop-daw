@@ -5,7 +5,7 @@ export default class SynthModel {
   name = "Test1";
   events = [[], [], [], []];
   notes = new Map([]);
-  sectionLength = 4;
+  sectionLength = 16;
   instrumentId = null;
 
   constructor(audioctx, id) {

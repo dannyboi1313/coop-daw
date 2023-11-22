@@ -2,7 +2,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 6rem;
+  max-width: 100vw;
+
   min-height: 100vh;
 }
 .trackWrapper {
@@ -43,12 +44,22 @@
 }
 
 .selected {
-  background-color: peru;
+  border: solid 1px white;
 }
 
 .gridCell {
-  background-color: lightgray;
+  border-left: 1px solid lightgray;
 }
 .selectedGrid {
-  background-color: blue;
+  border-left: 1px solid black;
+}
+
+.buttonControl {
+  width: 2rem;
+  border: none;
+  color: var(--color-light);
+  background-color: transparent;
+}
+
+.buttonControlSelected {
 }

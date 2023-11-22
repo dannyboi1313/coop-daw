@@ -43,7 +43,9 @@ const SectionMarker = ({
         handleDoubleClick(event);
       }}
       onContextMenu={() => {
-        handleDelete(section.sectionId);
+        if (!displayEditor) {
+          handleDelete(section.sectionId);
+        }
       }}
     >
       {displayEditor && (

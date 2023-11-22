@@ -4,10 +4,10 @@ import { mapRowToKey, getNoteCount } from "../utils/keyboardUtils";
 
 const MIN_NOTE_SIZE = 1;
 const NUM_KEYS = 72;
-const DEFAULT_NOTE_SIZE = 1;
+const DEFAULT_NOTE_SIZE = 15;
 
 const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
-  const [gridSize, setGridSize] = useState(20);
+  const [gridSize, setGridSize] = useState(80);
 
   const [grid, setGrid] = useState(() => {
     const newArray = new Array(NUM_KEYS);
@@ -67,9 +67,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   };
 
   const handleNoteClick = (row, col, note) => {
-    // Start dragging the note
-    console.log("Clicking", note);
-
+    // Start dragging the not
     if (note && expandRightNote === null) {
       console.log("setting drag", note);
       setDraggingNote({ note: note, clickX: row, clickY: col });
@@ -223,7 +221,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
                   index === timer && styles.highlighted
                 }`}
               >
-                {index}
+                {index % 16 === 0 && index / 16 + (index % 16)}
               </div>
             );
           })}
