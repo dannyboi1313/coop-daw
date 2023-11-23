@@ -16,6 +16,7 @@ import {
   faBackwardStep,
   faAdd,
 } from "@fortawesome/free-solid-svg-icons";
+import DrumFacade from "../../models/DrumFacade";
 
 const NUM_GRIDS = 80;
 
@@ -456,6 +457,7 @@ export default function Home() {
     const currInstrument = instruments.get(currSection.instrument);
 
     //console.log(currInstrument, selectedSection, section.sectionId);
+
     return (
       <SectionMarker
         key={section}
@@ -471,6 +473,15 @@ export default function Home() {
       />
     );
   };
+  const drum = new DrumFacade(audioContext, 1);
+  const handleTestClick = () => {
+    console.log(dtmf);
+    drum.handleEvent(
+      { type: "trigger", note: "kickSample" },
+      audioContext.currentTime
+    );
+  };
+
   return (
     <>
       <Head>
@@ -571,6 +582,16 @@ export default function Home() {
                 </div>
               );
             })}
+          </div>
+          <div>
+            TESTING SOME THINGS OUTS
+            <button
+              onClick={() => {
+                handleTestClick();
+              }}
+            >
+              Test
+            </button>
           </div>
         </div>
       </main>

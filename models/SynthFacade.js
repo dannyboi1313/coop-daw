@@ -2,7 +2,7 @@ import Player from "../classes/Player";
 import { mapRowToKey } from "../utils/keyboardUtils";
 import InstrumentFacade from "./InstrumentFacade";
 
-export default class SynthModel extends InstrumentFacade {
+export default class SynthFacade extends InstrumentFacade {
   constructor(audioctx, id) {
     super(audioctx, id);
     this.synth = new Player(audioctx);
