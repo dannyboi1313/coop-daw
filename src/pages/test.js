@@ -6,7 +6,7 @@ import Player from "../../classes/Player";
 const inter = Inter({ subsets: ["latin"] });
 import { useAudioContext } from "../../providers/AudioContextContext";
 import SynthPlayer from "../../components/instruments/SynthPlayer";
-import SynthModel from "../../models/SynthModel";
+import SynthFacade from "../../models/SynthFacade";
 import SectionMarker from "../../components/SectionMarker";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -18,6 +18,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 const NUM_GRIDS = 80;
+
+const colors = {
+  blue: "blue",
+  pink: "pink",
+};
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
@@ -95,8 +100,8 @@ export default function Home() {
     //fetchInstruments();
     // const ac = useAudioContext();
     //setAudioContext(ac);
-    const s = new SynthModel(audioContext, 1);
-    const s2 = new SynthModel(audioContext, 2);
+    const s = new SynthFacade(audioContext, 1);
+    const s2 = new SynthFacade(audioContext, 2);
     setInstrument(s);
     const i = instruments;
     i.set(1, s);
@@ -107,16 +112,18 @@ export default function Home() {
       track: 1,
       startTime: 0,
       instrument: 1,
+      color: colors.blue,
     });
     sections.set(2, {
       sectionId: 2,
       track: 2,
       startTime: 0,
       instrument: 2,
+      color: colors.pink,
     });
     setTracks([
-      { id: 1, volumn: 80, sections: [1] },
-      { id: 2, volumn: 80, sections: [2] },
+      { id: 1, volumn: 80, sections: [1], color: colors.blue },
+      { id: 2, volumn: 80, sections: [2], color: colors.pink },
     ]);
     const eq = [];
     for (let i = 0; i < NUM_GRIDS; i++) {
@@ -169,12 +176,14 @@ export default function Home() {
     const newId = sections.size + 1;
     const currSections = new Map(sections);
     const sectionInstrument = instruments.get(trackId);
+    const sectionTrack = tracks[trackId - 1];
     console.log("adding note", trackId, start, newId, sectionInstrument);
     currSections.set(newId, {
       sectionId: newId,
       track: trackId,
       startTime: start,
       instrument: trackId,
+      color: sectionTrack.color,
     });
     setSections(currSections);
     const tracksCopy = tracks;

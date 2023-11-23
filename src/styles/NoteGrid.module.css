@@ -55,7 +55,7 @@
 }
 
 .gridHeaderCell {
-  width: 5rem;
+  width: 2rem;
   height: 2rem;
   position: relative;
   background-color: #f3f3f3;
@@ -72,11 +72,20 @@
   border: 1px solid black;
 }
 .gridCell {
-  width: 5rem;
+  width: 2rem;
   height: 2rem;
-  border: 1px solid #ccc;
   position: relative;
   background-color: #f3f3f3;
+  border-top: solid 1px lightgray;
+}
+.borderThick {
+  border-left: 3px solid black;
+}
+.borderThin {
+  border-left: solid 1px lightgray;
+}
+.borderNormal {
+  border-left: solid 1px black;
 }
 .rowLabel {
   text-align: right;
@@ -104,7 +113,7 @@
 .selected {
   position: absolute;
   height: 2rem;
-  width: 5rem;
+  width: 2rem;
   background-color: aquamarine;
   z-index: 10;
   cursor: pointer;
@@ -115,7 +124,7 @@
   border-radius: 1rem 0rem 0rem 1rem;
 }
 .middle {
-  width: 5.5rem;
+  width: 2.5rem;
 }
 
 .grey {

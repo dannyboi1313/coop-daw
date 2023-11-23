@@ -1,28 +1,13 @@
 import Player from "../classes/Player";
 import { mapRowToKey } from "../utils/keyboardUtils";
-export default class SynthModel {
-  synth = null;
-  name = "Test1";
-  events = [[], [], [], []];
-  notes = new Map([]);
-  sectionLength = 16;
-  instrumentId = null;
+import InstrumentFacade from "./InstrumentFacade";
 
+export default class SynthModel extends InstrumentFacade {
   constructor(audioctx, id) {
+    super(audioctx, id);
     this.synth = new Player(audioctx);
-    this.instrumentId = id;
     this.name = "Synth " + id;
   }
-  getNotes = () => {
-    return this.notes;
-  };
-  getEventList = () => {
-    return this.events;
-  };
-
-  setId = (id) => {
-    this.instrumentId = id;
-  };
 
   updateEvents = (notes, size) => {
     console.log("UPDATING EVENTS CALLED");
@@ -46,10 +31,6 @@ export default class SynthModel {
     return this;
   };
 
-  getSectionLength = () => {
-    return this.sectionLength;
-  };
-
   handleEvent = (event, time = 0) => {
     switch (event.type) {
       case "noteOn":
@@ -63,7 +44,6 @@ export default class SynthModel {
     }
   };
   stopAllNotes() {
-    console.log("Command sent.. trying to turn off");
     this.synth.allNotesOff();
     this.events.forEach((event) => {
       event.forEach((e) => {

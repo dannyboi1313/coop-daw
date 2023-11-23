@@ -4,7 +4,7 @@ import { mapRowToKey, getNoteCount } from "../utils/keyboardUtils";
 
 const MIN_NOTE_SIZE = 1;
 const NUM_KEYS = 72;
-const DEFAULT_NOTE_SIZE = 15;
+const DEFAULT_NOTE_SIZE = 3;
 
 const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const [gridSize, setGridSize] = useState(80);
@@ -175,6 +175,16 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     if (cell.end == col) return styles.end;
     return styles.middle;
   };
+
+  const getGridTick = (idx) => {
+    if (idx % 16 === 0) {
+      return styles.borderThick;
+    } else if (idx % 4 === 0) {
+      return styles.borderNormal;
+    } else {
+      return styles.borderThin;
+    }
+  };
   return (
     <div className={styles.gridWrapper} onContextMenu={handleGridRightClick}>
       <div className={styles.gridContainer}>
@@ -183,7 +193,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
           className={styles.leftColumn}
           style={{
             gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
-            gridTemplateColumns: `repeat(1,10rem)`,
+            gridTemplateColumns: `repeat(1,8rem)`,
           }}
         >
           {/* Render the row labels */}
@@ -210,7 +220,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
         <div
           className={styles.grid}
           style={{
-            gridTemplateColumns: `repeat(${gridSize}, 5rem)`,
+            gridTemplateColumns: `repeat(${gridSize}, 2rem)`,
             gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
           }}
         >
@@ -229,7 +239,7 @@ const Grid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
             row.map((cell, colIndex) => (
               <div
                 key={`${rowIndex}-${colIndex}`}
-                className={`${styles.gridCell} ${
+                className={`${styles.gridCell} ${getGridTick(colIndex)} ${
                   cell !== null && styles.disabled
                 }`}
                 onClick={() => handleGridClick(rowIndex, colIndex, cell)}

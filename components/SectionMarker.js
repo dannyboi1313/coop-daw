@@ -28,9 +28,22 @@ const SectionMarker = ({
   const handleCloseEditor = () => {
     setDisplayEditor(false);
   };
+
+  const getColorClass = () => {
+    switch (section.color) {
+      case "blue":
+        return styles.blueMarker;
+      case "pink":
+        return styles.pinkMarker;
+      default:
+        return "";
+    }
+  };
   return (
     <div
-      className={`${styles.sectionMarker} ${selected && styles.selected}`}
+      className={`${styles.sectionMarker} ${getColorClass()} ${
+        selected && styles.selected
+      }`}
       style={{
         gridColumn: `${section.startTime + 1} / span ${instrument.getSectionLength()}`, //prettier-ignore
       }}
