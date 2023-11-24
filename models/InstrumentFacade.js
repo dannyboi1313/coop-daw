@@ -17,6 +17,9 @@ export default class InstrumentFacade {
   getEventList = () => {
     return this.events;
   };
+  getId = () => {
+    return this.instrumentId;
+  };
 
   setId = (id) => {
     this.instrumentId = id;

@@ -1,6 +1,6 @@
 import styles from "@/styles/Home.module.css";
 import { useState } from "react";
-import SynthPlayer from "./instruments/SynthPlayer";
+import SynthPlayer from "./editors/SynthEditor";
 
 const SectionMarker = ({
   section,
@@ -27,6 +27,32 @@ const SectionMarker = ({
   };
   const handleCloseEditor = () => {
     setDisplayEditor(false);
+  };
+
+  const renderEditor = () => {
+    switch (instrument.type) {
+      case "synth":
+        return (
+          <SynthPlayer
+            instrument={instrument}
+            updateNotes={updateInstrument}
+            timer={timer}
+            closeEditor={handleCloseEditor}
+          />
+        );
+      case "synth":
+        return (
+          <SynthPlayer
+            instrument={instrument}
+            updateNotes={updateInstrument}
+            timer={timer}
+            closeEditor={handleCloseEditor}
+          />
+        );
+
+      default:
+        break;
+    }
   };
 
   const getColorClass = () => {
@@ -61,14 +87,7 @@ const SectionMarker = ({
         }
       }}
     >
-      {displayEditor && (
-        <SynthPlayer
-          instrument={instrument}
-          updateNotes={updateInstrument}
-          timer={timer}
-          closeEditor={handleCloseEditor}
-        />
-      )}
+      {displayEditor && renderEditor()}
     </div>
   );
 };

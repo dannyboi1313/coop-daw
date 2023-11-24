@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import Player from "../../classes/Player";
 const inter = Inter({ subsets: ["latin"] });
 import { useAudioContext } from "../../providers/AudioContextContext";
-import SynthPlayer from "../../components/instruments/SynthPlayer";
+import SynthPlayer from "../../components/editors/SynthEditor";
 import SynthFacade from "../../models/SynthFacade";
 import SectionMarker from "../../components/SectionMarker";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -17,6 +17,7 @@ import {
   faAdd,
 } from "@fortawesome/free-solid-svg-icons";
 import DrumFacade from "../../models/DrumFacade";
+import DrumMachine from "../../classes/DrumMachine";
 
 const NUM_GRIDS = 80;
 
@@ -103,10 +104,12 @@ export default function Home() {
     //setAudioContext(ac);
     const s = new SynthFacade(audioContext, 1);
     const s2 = new SynthFacade(audioContext, 2);
-    setInstrument(s);
+    const d = new DrumFacade(audioContext, 3);
+
     const i = instruments;
     i.set(1, s);
     i.set(2, s2);
+    i.set(3, d);
     setInstruments(i);
     sections.set(1, {
       sectionId: 1,
@@ -122,9 +125,17 @@ export default function Home() {
       instrument: 2,
       color: colors.pink,
     });
+    sections.set(3, {
+      sectionId: 3,
+      track: 3,
+      startTime: 0,
+      instrument: 3,
+      color: colors.pink,
+    });
     setTracks([
       { id: 1, volumn: 80, sections: [1], color: colors.blue },
       { id: 2, volumn: 80, sections: [2], color: colors.pink },
+      { id: 3, volumn: 80, sections: [3], color: colors.pink },
     ]);
     const eq = [];
     for (let i = 0; i < NUM_GRIDS; i++) {
@@ -137,6 +148,7 @@ export default function Home() {
   useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying, sections, tracks,]); //prettier-ignore
 
   const updateInstrument = (notes, size, instrumentId) => {
+    console.log("updating", notes, size, instrumentId);
     const oldInstrument = instruments.get(instrumentId);
     const updated = oldInstrument.updateEvents(notes, size);
     const oldList = instruments;
@@ -473,7 +485,7 @@ export default function Home() {
       />
     );
   };
-  const drum = new DrumFacade(audioContext, 1);
+
   const handleTestClick = () => {
     console.log(dtmf);
     drum.handleEvent(
