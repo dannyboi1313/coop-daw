@@ -38,7 +38,7 @@ export default class DrumMachine {
       const hhCBuff = await this.setupSamples(this.params.hiHatClosed);
 
       this.sampleBuffers.set("snare", snareBuff);
-      this.sampleBuffers.set("kickSample", kickBuff);
+      this.sampleBuffers.set("kick", kickBuff);
       this.sampleBuffers.set("hitHat", hhBuff);
       this.sampleBuffers.set("hiHatClosed", hhCBuff);
     };

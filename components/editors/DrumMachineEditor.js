@@ -47,12 +47,6 @@ const DrumMachineEditor = ({ instrument, updateNotes, timer, closeEditor }) => {
   return (
     <div
       className={styles.notePage}
-      style={{
-        width: size.width,
-        height: size.height,
-        overflow: "hidden",
-        zIndex: "3",
-      }}
       onMouseDown={handleMouseDown}
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}

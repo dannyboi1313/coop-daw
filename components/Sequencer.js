@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import styles from "@/styles/NoteGrid.module.css";
+import styles from "@/styles/Sequencer.module.css";
 import { mapRowToKey, getNoteCount } from "../utils/keyboardUtils";
 
 const MIN_NOTE_SIZE = 1;
@@ -37,6 +37,8 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     setLoading(false);
   }, []);
 
+  useEffect(() => {}, [pads]);
+
   if (loading) {
     return <div>Laoding</div>;
   }
@@ -48,17 +50,13 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   //   }, [notes]);
 
   const handleGridClick = (row, col, cell) => {
-    if (cell !== null) {
-      return;
+    const padsCopy = [...pads];
+    if (cell === 1) {
+      padsCopy[row][col] = 0;
+    } else {
+      padsCopy[row][col] = 1;
     }
-    const currNotes = notes;
-    const start = col;
-    const end = start + DEFAULT_NOTE_SIZE;
-    const id = currNotes.size + 1;
-    currNotes.set(id, { id: id, row: row, start: start, end: end });
-
-    setNotes(currNotes);
-    updateGrid();
+    setPads(padsCopy);
   };
 
   const updateGrid = () => {
@@ -114,8 +112,8 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
         <div
           className={styles.leftColumn}
           style={{
-            gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
-            gridTemplateColumns: `repeat(1,8rem)`,
+            gridTemplateRows: `repeat(${NUM_KEYS}, 6rem)`,
+            gridTemplateColumns: `repeat(1,4rem)`,
           }}
         >
           {/* Render the row labels */}
@@ -130,35 +128,46 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
           ))}
         </div>
 
-        <div
-          className={styles.grid}
-          style={{
-            gridTemplateColumns: `repeat(${gridSize}, 2rem)`,
-            gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
-          }}
-        >
-          {pads[0].map((e, index) => {
-            return (
-              <div
-                className={`${styles.gridHeaderCell} ${
-                  index === timer && styles.highlighted
-                }`}
-              >
-                {index % 16 === 0 && index / 16 + (index % 16)}
-              </div>
-            );
-          })}
-          {pads.map((row, rowIndex) =>
-            row.map((cell, colIndex) => (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={`${styles.gridCell} `}
-                onClick={() => handleGridClick(rowIndex, colIndex, cell)}
-              >
-                {cell}
-              </div>
-            ))
-          )}
+        <div className="flex flex-col w-100 h-100 ps-1">
+          <div
+            className={styles.grid}
+            style={{
+              gridTemplateColumns: `repeat(${gridSize}, minmax(10px, 1fr))`,
+              gridTemplateRows: `repeat(1, 2rem)`,
+            }}
+          >
+            {pads[0].map((e, index) => {
+              return (
+                <div
+                  className={`${styles.gridHeaderCell} ${
+                    index === timer && styles.highlighted
+                  }`}
+                >
+                  {index % 16 === 0 && index / 16 + (index % 16)}
+                </div>
+              );
+            })}
+          </div>
+
+          <div
+            className={styles.grid}
+            style={{
+              gridTemplateColumns: `repeat(${gridSize}, minmax(30px, 40px))`,
+              gridTemplateRows: `repeat(${NUM_KEYS}, minmax(40px, 40px))`,
+            }}
+          >
+            {pads.map((row, rowIndex) =>
+              row.map((cell, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`${styles.pad} ${cell === 1 && styles.selected} `}
+                  onClick={() => handleGridClick(rowIndex, colIndex, cell)}
+                >
+                  {cell}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

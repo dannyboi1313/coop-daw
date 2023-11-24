@@ -10,11 +10,16 @@ export default class DrumFacade extends InstrumentFacade {
     this.name = "Drum " + id;
     this.events = [
       [{ type: "trigger", note: "kick", instrumentId: this.instrumentId }],
+      [],
+      [],
+      [],
+      [],
+      [],
       [{ type: "trigger", note: "snare", instrumentId: this.instrumentId }],
     ];
     this.notes = new Map();
-    this.notes.set(1, { row: 2, col: 1 });
-    this.notes.set(2, { row: 3, col: 2 });
+    this.notes.set(1, { row: 2, col: 0 });
+    this.notes.set(2, { row: 3, col: 15 });
   }
 
   updateEvents = (notes, size) => {

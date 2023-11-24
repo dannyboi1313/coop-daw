@@ -204,13 +204,9 @@ export default function Home() {
   };
   const updateEventQueue = () => {
     try {
-      console.log("UPDATEING EVENT QUEUE CALLED");
       const queue = emptyQueue(eventQueue);
-      console.log("UPdating Events", tracks[0]);
       tracks.map((track) => {
-        console.log("track", track);
         track.sections.map((sec) => {
-          console.log("section", sec);
           const section = sections.get(sec);
           console.log(sections, section, section.startTime);
           const startTime = section.startTime;
@@ -218,12 +214,10 @@ export default function Home() {
           const events = instrument.getEventList();
           events.map((event, index) => {
             event.map((e) => {
-              console.log("Mapping event ", event, startTime + index);
               queue.at(startTime + index).push(e);
             });
           });
         });
-        console.log("After track map");
       });
 
       setEventQueue(queue);
@@ -563,23 +557,23 @@ export default function Home() {
         onContextMenu={preventDefaults}
       >
         <div className="flex flex-row w-100 justify-between align-center bg-darker h-5 p-1">
-          <div className="t-b">Title - Project Name</div>
+          <div className="">Title - Project Name</div>
           <div className="flex h-100 justify-around ps-1">
             <div className="bg-grey-dark h-100 flex flex-row justify-between align-center rounded-1 ps-1">
               <button className={styles.buttonControl}>
-                <FontAwesomeIcon icon={faBackwardStep} size="xl" />
+                <FontAwesomeIcon icon={faBackwardStep} size="lg" />
               </button>
               <div className="vert-divider"></div>
               <button onClick={handlePlay} className={styles.buttonControl}>
-                <FontAwesomeIcon icon={faPlay} size="xl" />
+                <FontAwesomeIcon icon={faPlay} size="lg" />
               </button>
               <div className="vert-divider"></div>
               <button onClick={handleStop} className={styles.buttonControl}>
-                <FontAwesomeIcon icon={faStop} size="xl" />
+                <FontAwesomeIcon icon={faStop} size="lg" />
               </button>
               <div className="vert-divider"></div>
               <button className={styles.buttonControl}>
-                <FontAwesomeIcon icon={faRepeat} size="xl" />
+                <FontAwesomeIcon icon={faRepeat} size="lg" />
               </button>
             </div>
             <div className="bg-darkest ml-1 w-8 flex align-center">
@@ -650,16 +644,6 @@ export default function Home() {
                 </div>
               );
             })}
-          </div>
-          <div>
-            TESTING SOME THINGS OUTS
-            <button
-              onClick={() => {
-                handleTestClick();
-              }}
-            >
-              Test
-            </button>
           </div>
         </div>
       </main>
