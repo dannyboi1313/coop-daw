@@ -1,5 +1,4 @@
 export default class InstrumentFacade {
-  synth = null;
   name = "Test1";
   events = [[], [], [], []];
   notes = new Map([]);

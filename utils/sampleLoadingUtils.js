@@ -8,3 +8,18 @@ const filePaths = {
 export const getSampleFilePath = (sample) => {
   return filePaths[sample];
 };
+
+export const mapRowToSampleName = (row) => {
+  switch (row) {
+    case 0:
+      return "hiHatClosed";
+    case 1:
+      return "hitHat";
+    case 2:
+      return "snare";
+    case 3:
+      return "kick";
+    default:
+      break;
+  }
+};

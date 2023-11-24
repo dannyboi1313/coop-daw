@@ -2,12 +2,19 @@ import DrumMachine from "../classes/DrumMachine";
 import InstrumentFacade from "./InstrumentFacade";
 
 export default class DrumFacade extends InstrumentFacade {
-  type = "drums";
+  type = "drum";
   constructor(audioctx, id) {
     super(audioctx, id);
     console.log("Creating new drum machine.");
     this.drumMachine = new DrumMachine(audioctx);
-    this.name = "Synth " + id;
+    this.name = "Drum " + id;
+    this.events = [
+      [{ type: "trigger", note: "kick", instrumentId: this.instrumentId }],
+      [{ type: "trigger", note: "snare", instrumentId: this.instrumentId }],
+    ];
+    this.notes = new Map();
+    this.notes.set(1, { row: 2, col: 1 });
+    this.notes.set(2, { row: 3, col: 2 });
   }
 
   updateEvents = (notes, size) => {
@@ -18,20 +25,12 @@ export default class DrumFacade extends InstrumentFacade {
   handleEvent = (event, time = 0) => {
     switch (event.type) {
       case "trigger":
+        console.log("triggered");
         this.drumMachine.playSample(event.note, time);
         break;
       default:
         break;
     }
   };
-  stopAllNotes() {
-    this.synth.allNotesOff();
-    this.events.forEach((event) => {
-      event.forEach((e) => {
-        if (e.type == "noteOff") {
-          this.handleEvent(e);
-        }
-      });
-    });
-  }
+  stopAllNotes() {}
 }

@@ -5,19 +5,14 @@ const { default: PARAM_DEFAULTS } = require("../data/paramDefaults");
 export default class DrumMachine {
   playbackRate = 1;
   static PARAM_DEFAULTS = {
-    kickSample: "kickSample",
-    snareSample: "snareSample",
-    hiHatSample: "hiHatSample",
-    hiHatClosedSample: "hiHatClosedSample",
+    kick: "kickSample",
+    snare: "snareSample",
+    hiHat: "hiHatSample",
+    hiHatClosed: "hiHatClosedSample",
   };
 
   num_sequences = 4;
-  param_keys = [
-    "kickSample",
-    "snareSample",
-    "hiHatSample",
-    "hiHatClosedSample",
-  ];
+  param_keys = ["kick", "snare", "hiHat", "hiHatClosed"];
 
   sampleBuffers = new Map();
   //  {
@@ -37,15 +32,15 @@ export default class DrumMachine {
     console.log("calling setup");
 
     const backGroundWork = async () => {
-      const snareBuff = await this.setupSamples(this.params.snareSample);
-      const kickBuff = await this.setupSamples(this.params.kickSample);
-      const hhBuff = await this.setupSamples(this.params.hiHatSample);
-      const hhCBuff = await this.setupSamples(this.params.hiHatClosedSample);
+      const snareBuff = await this.setupSamples(this.params.snare);
+      const kickBuff = await this.setupSamples(this.params.kick);
+      const hhBuff = await this.setupSamples(this.params.hiHat);
+      const hhCBuff = await this.setupSamples(this.params.hiHatClosed);
 
-      this.sampleBuffers.set(this.params.snareSample, snareBuff);
-      this.sampleBuffers.set(this.params.kickSample, kickBuff);
-      this.sampleBuffers.set(this.params.hiHatSample, hhBuff);
-      this.sampleBuffers.set(this.params.hiHatClosedSample, hhCBuff);
+      this.sampleBuffers.set("snare", snareBuff);
+      this.sampleBuffers.set("kickSample", kickBuff);
+      this.sampleBuffers.set("hitHat", hhBuff);
+      this.sampleBuffers.set("hiHatClosed", hhCBuff);
     };
     backGroundWork();
   }
@@ -65,7 +60,12 @@ export default class DrumMachine {
 
   playSample(sample, time) {
     let playbackRate = 1;
-    console.log("playing sample", sample, this.sampleBuffers.get(sample));
+    console.log(
+      "playing sample",
+      sample,
+      this.sampleBuffers,
+      this.sampleBuffers.get(sample)
+    );
     const sampleSource = new AudioBufferSourceNode(this.AC, {
       buffer: this.sampleBuffers.get(sample),
       playbackRate,

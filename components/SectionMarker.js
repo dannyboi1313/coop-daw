@@ -1,6 +1,7 @@
 import styles from "@/styles/Home.module.css";
 import { useState } from "react";
 import SynthPlayer from "./editors/SynthEditor";
+import DrumMachineEditor from "./editors/DrumMachineEditor";
 
 const SectionMarker = ({
   section,
@@ -40,16 +41,15 @@ const SectionMarker = ({
             closeEditor={handleCloseEditor}
           />
         );
-      case "synth":
+      case "drum":
         return (
-          <SynthPlayer
+          <DrumMachineEditor
             instrument={instrument}
             updateNotes={updateInstrument}
             timer={timer}
             closeEditor={handleCloseEditor}
           />
         );
-
       default:
         break;
     }

@@ -21,8 +21,16 @@ export default class SynthFacade extends InstrumentFacade {
     for (let note of notes.values()) {
       this.notes.set(note.id, note);
       const key = mapRowToKey(note.row);
-      this.events[note.start].push({ type: "noteOn", note: key });
-      this.events[note.end].push({ type: "noteOff", note: key });
+      this.events[note.start].push({
+        type: "noteOn",
+        note: key,
+        instrumentId: this.instrumentId,
+      });
+      this.events[note.end].push({
+        type: "noteOff",
+        note: key,
+        instrumentId: this.instrumentId,
+      });
       if (note.end > currMax) {
         currMax = note.end + 1;
       }

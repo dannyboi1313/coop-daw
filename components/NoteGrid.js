@@ -25,6 +25,10 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const [expandRightNote, setExpandRightNote] = useState(null);
 
   useEffect(() => {
+    initializeGrid();
+  }, []);
+
+  useEffect(() => {
     // if (!rendered) {
     //   updateGrid();
     //   setRendered(true);
@@ -46,7 +50,7 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     updateGrid();
   };
 
-  const updateGrid = () => {
+  const initializeGrid = () => {
     //Update grid with rectangles
     const newGrid = grid;
     console.log("Updating", newGrid, notes);
@@ -64,6 +68,10 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     // console.log("Updated", newGrid);
 
     setGrid([...newGrid]);
+  };
+
+  const updateGrid = () => {
+    initializeGrid();
     updateNotes(notes, gridSize, instrumentID);
   };
 

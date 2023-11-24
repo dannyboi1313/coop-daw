@@ -110,43 +110,54 @@ export default function Home() {
     i.set(1, s);
     i.set(2, s2);
     i.set(3, d);
+
     setInstruments(i);
-    sections.set(1, {
+    const initialSections = new Map();
+    initialSections.set(1, {
       sectionId: 1,
       track: 1,
       startTime: 0,
       instrument: 1,
       color: colors.blue,
     });
-    sections.set(2, {
+    initialSections.set(2, {
       sectionId: 2,
       track: 2,
       startTime: 0,
       instrument: 2,
       color: colors.pink,
     });
-    sections.set(3, {
+    initialSections.set(3, {
       sectionId: 3,
       track: 3,
       startTime: 0,
       instrument: 3,
       color: colors.pink,
     });
-    setTracks([
+    setSections(initialSections);
+
+    const initialTracks = [
       { id: 1, volumn: 80, sections: [1], color: colors.blue },
       { id: 2, volumn: 80, sections: [2], color: colors.pink },
       { id: 3, volumn: 80, sections: [3], color: colors.pink },
-    ]);
+    ];
+    setTracks(initialTracks);
     const eq = [];
     for (let i = 0; i < NUM_GRIDS; i++) {
       eq.push([]);
     }
-    setEventQueue(eq); //prettier-ignore
+    //setEventQueue(eq);
+    initializeEventQueue(eq, initialTracks, initialSections, i);
+    //updateEventQueue();
     setLoading(false);
   }, []);
 
-  useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying, sections, tracks,]); //prettier-ignore
+  useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying, eventQueue, tracks]); //prettier-ignore
 
+  useEffect(() => {
+    console.log("UPDATING FrOM SECTIONS");
+    updateEventQueue();
+  }, [sections]);
   const updateInstrument = (notes, size, instrumentId) => {
     console.log("updating", notes, size, instrumentId);
     const oldInstrument = instruments.get(instrumentId);
@@ -154,9 +165,17 @@ export default function Home() {
     const oldList = instruments;
     oldList[instrumentId] = updated;
     setInstruments(oldList);
+    updateEventQueue();
     //console.log("Insturment", instrument);
   };
   const emptyQueue = (queue) => {
+    if (queue === null) {
+      const eq = [];
+      for (let i = 0; i < NUM_GRIDS; i++) {
+        eq.push([]);
+      }
+      return eq;
+    }
     //const queue = eventQueue;
     queue.map((a, index) => {
       queue[index] = [];
@@ -164,14 +183,13 @@ export default function Home() {
     //setEventQueue(queue);
     return queue;
   };
-  const updateEventQueue = () => {
-    const queue = emptyQueue(eventQueue);
-    //console.log("TRACks", tracks[0]);
-    tracks.map((track) => {
+
+  const initializeEventQueue = (queue, t, s, i) => {
+    t.map((track) => {
       track.sections.map((sec) => {
-        const section = sections.get(sec);
+        const section = s.get(sec);
         const startTime = section.startTime;
-        const instrument = instruments.get(section.instrument);
+        const instrument = i.get(section.instrument);
         //console.log("TESTING", instrument);
         const events = instrument.getEventList();
         events.map((event, index) => {
@@ -183,6 +201,35 @@ export default function Home() {
     });
 
     setEventQueue(queue);
+  };
+  const updateEventQueue = () => {
+    try {
+      console.log("UPDATEING EVENT QUEUE CALLED");
+      const queue = emptyQueue(eventQueue);
+      console.log("UPdating Events", tracks[0]);
+      tracks.map((track) => {
+        console.log("track", track);
+        track.sections.map((sec) => {
+          console.log("section", sec);
+          const section = sections.get(sec);
+          console.log(sections, section, section.startTime);
+          const startTime = section.startTime;
+          const instrument = instruments.get(section.instrument);
+          const events = instrument.getEventList();
+          events.map((event, index) => {
+            event.map((e) => {
+              console.log("Mapping event ", event, startTime + index);
+              queue.at(startTime + index).push(e);
+            });
+          });
+        });
+        console.log("After track map");
+      });
+
+      setEventQueue(queue);
+    } catch (e) {
+      console.log("Whelp");
+    }
   };
 
   const addSection = (trackId, id, start) => {
@@ -198,10 +245,13 @@ export default function Home() {
       instrument: trackId,
       color: sectionTrack.color,
     });
-    setSections(currSections);
+    //setSections(null);
+
+    console.log("Section added", currSections === sections);
     const tracksCopy = tracks;
     tracksCopy[trackId - 1].sections.push(newId);
     setTracks(tracksCopy);
+    setSections(currSections);
   };
 
   const deleteSection = (id, start) => {
@@ -267,6 +317,10 @@ export default function Home() {
 
     // Advance the beat number, wrap to zero when reaching 4
     currentNote = (currentNote + 1) % NUM_GRIDS;
+    // if (currentNote === 0) {
+    //   console.log("Restart count.. Sections", sections);
+    //   handleStop();
+    // }
     setCounter(currentNote);
   }
 
@@ -274,22 +328,22 @@ export default function Home() {
     return metronomeOn;
   };
   function scheduleNote(beatNumber, time) {
-    updateEventQueue();
-    //console.log("Event Queue", eventQueue);
-
+    if (beatNumber === 0) {
+      updateEventQueue();
+    }
     if (getMetronome() === true && beatNumber % 4 == 0) {
       //console.log("Scheduled some metronome", metronomeOn, time);
       playSample(dtmf, time);
     }
 
     if (eventQueue[beatNumber].length > 0) {
-      //console.log("BEAT: ", beatNumber);
+      console.log("BEAT: ", beatNumber, eventQueue[beatNumber]);
 
       eventQueue[beatNumber].forEach((e) => {
         //console.log("Playing ", e.note);
-        instrument.handleEvent(e, time);
+        console.log(e, e.instrumentId, instruments[e.instrumentId]);
+        instruments.get(e.instrumentId).handleEvent(e, time);
       });
-      eventQueue[beatNumber] = [];
     }
   }
 
@@ -299,6 +353,7 @@ export default function Home() {
 
       nextNote();
     }
+    console.log("Setting timeout");
     setTimerID(setTimeout(scheduler, lookahead));
   }
 
@@ -309,7 +364,7 @@ export default function Home() {
     if (audioContext.state === "suspended") {
       audioContext.resume();
     }
-
+    updateEventQueue();
     currentNote = counter;
     nextNoteTime = audioContext.currentTime;
     scheduler(); // kick off scheduling
@@ -323,6 +378,7 @@ export default function Home() {
       //console.log("stopping", instrument);
       instrument.stopAllNotes();
     });
+    updateEventQueue();
   };
   const handleMetronomeClick = () => {
     handleStop();
@@ -527,7 +583,7 @@ export default function Home() {
               </button>
             </div>
             <div className="bg-darkest ml-1 w-8 flex align-center">
-              <p>{counter}</p>
+              <p> {counter / 16 + 1}</p>
             </div>
             <button
               onClick={() => {
