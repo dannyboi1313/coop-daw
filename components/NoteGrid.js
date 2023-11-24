@@ -197,40 +197,11 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   return (
     <div className={styles.gridWrapper} onContextMenu={handleGridRightClick}>
       <div className={styles.gridContainer}>
-        {/* Render the grid */}
         <div
-          className={styles.leftColumn}
+          className={`${styles.headerRow}`}
           style={{
-            gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
-            gridTemplateColumns: `repeat(1,8rem)`,
-          }}
-        >
-          {/* Render the row labels */}
-          <div key={`row-label-start`} className="">
-            Row Header
-          </div>
-          {grid.map((row, rowIndex) => (
-            <div
-              key={`row-label-${rowIndex}`}
-              className={`${styles.rowLabel} ${
-                mapRowToKey(rowIndex)[1] == "#"
-                  ? styles.sharpOuter
-                  : styles.white
-              }`}
-            >
-              {mapRowToKey(rowIndex)[1] == "#" && (
-                <div className={styles.sharpInner}></div>
-              )}
-              {mapRowToKey(rowIndex)[1] !== "#" && mapRowToKey(rowIndex)}
-            </div>
-          ))}
-        </div>
-
-        <div
-          className={styles.grid}
-          style={{
-            gridTemplateColumns: `repeat(${gridSize}, 2rem)`,
-            gridTemplateRows: `repeat(${NUM_KEYS}, 2rem)`,
+            gridTemplateColumns: `repeat(${gridSize}, 1rem)`,
+            gridTemplateRows: `repeat(1, 2rem)`,
           }}
         >
           {grid[0].map((e, index) => {
@@ -244,43 +215,82 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
               </div>
             );
           })}
-          {grid.map((row, rowIndex) =>
-            row.map((cell, colIndex) => (
+        </div>
+
+        {/* Render the grid */}
+
+        <div className={styles.gridVert}>
+          <div
+            className={styles.leftColumn}
+            style={{
+              gridTemplateRows: `repeat(${NUM_KEYS}, 1rem)`,
+              gridTemplateColumns: `repeat(1,8rem)`,
+            }}
+          >
+            {/* Render the row labels */}
+
+            {grid.map((row, rowIndex) => (
               <div
-                key={`${rowIndex}-${colIndex}`}
-                className={`${styles.gridCell} ${getGridTick(colIndex)} ${
-                  cell !== null && styles.disabled
+                key={`row-label-${rowIndex}`}
+                className={`${styles.rowLabel} ${
+                  mapRowToKey(rowIndex)[1] == "#"
+                    ? styles.sharpOuter
+                    : styles.white
                 }`}
-                onClick={() => handleGridClick(rowIndex, colIndex, cell)}
-                onMouseUp={handleGridRelease}
-                onMouseMove={() => handleGridDrag(rowIndex, colIndex)}
               >
-                {cell !== null && (
-                  <div
-                    className={`${styles.selected} ${getPosition(cell,colIndex)}`} //prettier-ignore
-                    onMouseDown={() => handleNoteClick(rowIndex, colIndex, cell)} //prettier-ignore
-                    onContextMenu={() => { handleNoteDelete(cell);}} //prettier-ignore
-                  ></div>
+                {mapRowToKey(rowIndex)[1] == "#" && (
+                  <div className={styles.sharpInner}></div>
                 )}
-                {cell && cell.end === colIndex && (
-                  <div
-                    className={`${styles.dragBox} ${styles.end}`}
-                    onMouseDown={() =>
-                      handleNoteExpand("right", rowIndex, colIndex, cell)
-                    }
-                  ></div>
-                )}
-                {cell && cell.start === colIndex && (
-                  <div
-                    className={`${styles.dragBoxLeft} ${styles.start}`}
-                    onMouseDown={() =>
-                      handleNoteExpand("left", rowIndex, colIndex, cell)
-                    }
-                  ></div>
-                )}
+                {mapRowToKey(rowIndex)[1] !== "#" && mapRowToKey(rowIndex)}
               </div>
-            ))
-          )}
+            ))}
+          </div>
+
+          <div
+            className={styles.grid}
+            style={{
+              gridTemplateColumns: `repeat(${gridSize}, 1rem)`,
+              gridTemplateRows: `repeat(${NUM_KEYS}, 1rem)`,
+            }}
+          >
+            {grid.map((row, rowIndex) =>
+              row.map((cell, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`${styles.gridCell} ${getGridTick(colIndex)} ${
+                    cell !== null && styles.disabled
+                  }`}
+                  onClick={() => handleGridClick(rowIndex, colIndex, cell)}
+                  onMouseUp={handleGridRelease}
+                  onMouseMove={() => handleGridDrag(rowIndex, colIndex)}
+                >
+                  {cell !== null && (
+                    <div
+                      className={`${styles.selected} ${getPosition(cell,colIndex)}`} //prettier-ignore
+                      onMouseDown={() => handleNoteClick(rowIndex, colIndex, cell)} //prettier-ignore
+                      onContextMenu={() => { handleNoteDelete(cell);}} //prettier-ignore
+                    ></div>
+                  )}
+                  {cell && cell.end === colIndex && (
+                    <div
+                      className={`${styles.dragBox} ${styles.end}`}
+                      onMouseDown={() =>
+                        handleNoteExpand("right", rowIndex, colIndex, cell)
+                      }
+                    ></div>
+                  )}
+                  {cell && cell.start === colIndex && (
+                    <div
+                      className={`${styles.dragBoxLeft} ${styles.start}`}
+                      onMouseDown={() =>
+                        handleNoteExpand("left", rowIndex, colIndex, cell)
+                      }
+                    ></div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
         </div>
       </div>
     </div>

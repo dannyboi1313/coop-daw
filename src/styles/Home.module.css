@@ -10,42 +10,48 @@
   display: flex;
   width: 100%;
   min-height: 30rem;
-  background-color: blue;
 }
 .sectionMarker {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 95%;
   z-index: 1;
   grid-column: 3 / 10;
+  border-radius: 1rem;
   border: 1px grey solid;
+  align-self: center;
 }
 .pinkMarker {
-  background-color: rosybrown;
+  background-color: rgba(192, 85, 119, 0.6);
 }
 .blueMarker {
-  background-color: teal;
+  background-color: rgba(73, 86, 151, 0.6);
 }
 .trackContainer {
   width: 100%;
   height: 5rem;
-  background-color: beige;
-  border: solid #f3f3f3 1px;
+  margin-bottom: 2px;
 }
 .gridContainer {
   display: flex;
   flex-direction: column;
+  overflow: scroll;
 }
 .trackColumn {
+  padding-top: 1rem;
   height: 100%;
-  width: 10rem;
+  min-width: 15rem;
+  border: solid 1px var(--color-light);
   display: flex;
   flex-direction: column;
+  padding-left: 1rem;
+  padding-right: 1rem;
 }
 .trackInfo {
   height: 5rem;
-  background-color: black;
+  background-color: var(--color-dark-medium);
   color: white;
+  margin-top: 2px;
 }
 
 .selected {
@@ -53,7 +59,9 @@
 }
 
 .gridCell {
-  border-left: 1px solid lightgray;
+  border-left: 1px solid var(--color-grey-dark);
+  border-bottom: 1px solid var(--color-grey-dark);
+  border-top: 1px solid var(--color-grey-dark);
 }
 .selectedGrid {
   border-left: 1px solid black;
