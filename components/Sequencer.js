@@ -31,9 +31,10 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     ];
     for (let value of notes.values()) {
       //   console.log("val", value);
-      pads[value.row][value.col] = 1;
+      pads[value.row][value.start] = 1;
     }
     setPads(pads);
+    console.log("Rendering seq with these notes", notes);
     setLoading(false);
   }, []);
 
@@ -51,32 +52,24 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
 
   const handleGridClick = (row, col, cell) => {
     const padsCopy = [...pads];
+    const id = `${row}${col}`;
+
+    const notesCopy = notes;
     if (cell === 1) {
       padsCopy[row][col] = 0;
+      notesCopy.delete(id);
     } else {
       padsCopy[row][col] = 1;
+      notesCopy.set(id, { id: id, row: row, start: col });
     }
+    //setNotes(notesCopy);
     setPads(padsCopy);
+    updateNotes(notesCopy, gridSize, instrumentID);
   };
 
   const updateGrid = () => {
     //Update grid with rectangles
     const newGrid = grid;
-
-    for (let value of notes.values()) {
-      //   console.log("val", value);
-      newGrid[value.row][value.start] = value;
-      newGrid[value.row][value.end] = value;
-
-      for (let i = value.start + 1; i <= value.end - 1; i++) {
-        newGrid[value.row][i] = value;
-      }
-    }
-
-    // console.log("Updated", newGrid);
-
-    setGrid([...newGrid]);
-    updateNotes(notes, gridSize, instrumentID);
   };
 
   const handleNoteClick = (row, col, note) => {
@@ -162,9 +155,7 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
                   key={`${rowIndex}-${colIndex}`}
                   className={`${styles.pad} ${cell === 1 && styles.selected} `}
                   onClick={() => handleGridClick(rowIndex, colIndex, cell)}
-                >
-                  {cell}
-                </div>
+                ></div>
               ))
             )}
           </div>

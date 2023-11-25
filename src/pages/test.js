@@ -164,6 +164,7 @@ export default function Home() {
     const updated = oldInstrument.updateEvents(notes, size);
     const oldList = instruments;
     oldList[instrumentId] = updated;
+    console.log("updated instrument", updated);
     setInstruments(oldList);
     updateEventQueue();
     //console.log("Insturment", instrument);
@@ -208,7 +209,7 @@ export default function Home() {
       tracks.map((track) => {
         track.sections.map((sec) => {
           const section = sections.get(sec);
-          console.log(sections, section, section.startTime);
+          //console.log(sections, section, section.startTime);
           const startTime = section.startTime;
           const instrument = instruments.get(section.instrument);
           const events = instrument.getEventList();

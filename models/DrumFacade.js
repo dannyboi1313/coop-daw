@@ -8,22 +8,26 @@ export default class DrumFacade extends InstrumentFacade {
     console.log("Creating new drum machine.");
     this.drumMachine = new DrumMachine(audioctx);
     this.name = "Drum " + id;
-    this.events = [
-      [{ type: "trigger", note: "kick", instrumentId: this.instrumentId }],
-      [],
-      [],
-      [],
-      [],
-      [],
-      [{ type: "trigger", note: "snare", instrumentId: this.instrumentId }],
-    ];
-    this.notes = new Map();
-    this.notes.set(1, { row: 2, col: 0 });
-    this.notes.set(2, { row: 3, col: 15 });
   }
 
-  updateEvents = (notes, size) => {
-    console.log("UPDATING EVENTS CALLED");
+  updateEvents = (pads, size) => {
+    console.log("UPDATING drum CALLED", pads);
+    this.events = [...Array(size)].map((e) => Array());
+    for (let i; i < size; i++) {
+      this.events[i] = new Array();
+    }
+    for (let pad of pads.values()) {
+      this.notes.set(pad.id, pad);
+      console.log("adding pads", pad);
+      this.events[pad.start].push({
+        type: "trigger",
+        note: pad.row,
+        instrumentId: this.instrumentId,
+      });
+    }
+    console.log("After", this.notes);
+    //this.sectionLength = currMax;
+
     return this;
   };
 

@@ -5,10 +5,10 @@ const { default: PARAM_DEFAULTS } = require("../data/paramDefaults");
 export default class DrumMachine {
   playbackRate = 1;
   static PARAM_DEFAULTS = {
-    kick: "kickSample",
-    snare: "snareSample",
-    hiHat: "hiHatSample",
-    hiHatClosed: "hiHatClosedSample",
+    slot0: "kickSample",
+    slot1: "snareSample",
+    slot2: "hiHatSample",
+    slot3: "hiHatClosedSample",
   };
 
   num_sequences = 4;
@@ -32,15 +32,15 @@ export default class DrumMachine {
     console.log("calling setup");
 
     const backGroundWork = async () => {
-      const snareBuff = await this.setupSamples(this.params.snare);
-      const kickBuff = await this.setupSamples(this.params.kick);
-      const hhBuff = await this.setupSamples(this.params.hiHat);
-      const hhCBuff = await this.setupSamples(this.params.hiHatClosed);
+      const slot1Buff = await this.setupSamples(this.params.slot1);
+      const slot0Buff = await this.setupSamples(this.params.slot0);
+      const slot2Buff = await this.setupSamples(this.params.slot2);
+      const slot3Buff = await this.setupSamples(this.params.slot3);
 
-      this.sampleBuffers.set("snare", snareBuff);
-      this.sampleBuffers.set("kick", kickBuff);
-      this.sampleBuffers.set("hitHat", hhBuff);
-      this.sampleBuffers.set("hiHatClosed", hhCBuff);
+      this.sampleBuffers.set(1, slot1Buff);
+      this.sampleBuffers.set(0, slot0Buff);
+      this.sampleBuffers.set(2, slot2Buff);
+      this.sampleBuffers.set(3, slot3Buff);
     };
     backGroundWork();
   }

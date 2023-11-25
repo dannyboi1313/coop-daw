@@ -60,8 +60,8 @@ const DrumMachineEditor = ({ instrument, updateNotes, timer, closeEditor }) => {
         }}
       >
         <p>{instrumentID}</p>
-        <button onClick={handleMinimize}>Minimize</button>
-        <button onClick={handleExpand}>Expand</button>
+        {/* <button onClick={handleMinimize}>Minimize</button>
+        <button onClick={handleExpand}>Expand</button> */}
         <button onClick={handleClose}>Close</button>
       </div>
 

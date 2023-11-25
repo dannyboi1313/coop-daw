@@ -1,8 +1,8 @@
 const filePaths = {
-  kickSample: "/sounds/Bass-Drum-1.wav",
-  snareSample: "/sounds/metronome.wav",
-  hiHatSample: "/sounds/Bass-Drum-1.wav",
-  hiHatClosedSample: "/sounds/Bass-Drum-1.wav",
+  kickSample: "/sounds/kick_drum.wav",
+  snareSample: "/sounds/snare.wav",
+  hiHatSample: "/sounds/hitHatOpen.wav",
+  hiHatClosedSample: "/sounds/hitHatClosed.wav",
 };
 
 export const getSampleFilePath = (sample) => {
@@ -12,13 +12,13 @@ export const getSampleFilePath = (sample) => {
 export const mapRowToSampleName = (row) => {
   switch (row) {
     case 0:
-      return "hiHatClosed";
-    case 1:
-      return "hitHat";
-    case 2:
-      return "snare";
-    case 3:
       return "kick";
+    case 1:
+      return "snare";
+    case 2:
+      return "hiHat";
+    case 3:
+      return "hiHatClosed";
     default:
       break;
   }

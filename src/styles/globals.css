@@ -11,6 +11,7 @@
   --color-grey-medium: rgb(61, 60, 74);
   --color-grey-light: rgb(129, 126, 146);
   --color-light: rgb(217, 217, 217);
+  --color-white: #fff;
 }
 
 * {
