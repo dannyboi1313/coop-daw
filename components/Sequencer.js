@@ -53,18 +53,21 @@ const Sequencer = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const handleGridClick = (row, col, cell) => {
     const padsCopy = [...pads];
     const id = `${row}${col}`;
+    const newNote = { id: id, row: row, start: col };
 
     const notesCopy = notes;
     if (cell === 1) {
       padsCopy[row][col] = 0;
       notesCopy.delete(id);
+      updateNotes(newNote, 1, gridSize, instrumentID);
     } else {
       padsCopy[row][col] = 1;
-      notesCopy.set(id, { id: id, row: row, start: col });
+      notesCopy.set(id, newNote);
+      updateNotes(newNote, 0, gridSize, instrumentID);
     }
     //setNotes(notesCopy);
     setPads(padsCopy);
-    updateNotes(notesCopy, gridSize, instrumentID);
+    //updateNotes(notesCopy, gridSize, instrumentID);
   };
 
   const updateGrid = () => {

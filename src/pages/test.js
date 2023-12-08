@@ -49,13 +49,15 @@ export default function Home() {
 
   useEffect(() => {
     // Attach the event listener when the component mounts
+    console.log("KEYBINDING SECTION")
     window.addEventListener("keydown", handleKeyDown);
 
     // Detach the event listener when the component unmounts
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedSection, sections, selectedGridCell, copiedSectionId, draggingSection]); //prettier-ignore
+  }, [selectedSection, selectedGridCell, copiedSectionId, draggingSection]); //prettier-ignore
+
   //KeyBindings
   const handleKeyDown = (event) => {
     // Handle key events here
@@ -152,16 +154,46 @@ export default function Home() {
     setLoading(false);
   }, []);
 
-  useEffect(() => {}, [loading, instrument, counter, metronomeOn, isPlaying, eventQueue, tracks]); //prettier-ignore
+  // useEffect(() => {
+  //   console.log("refresing");
+  // }, [loading, instrument, metronomeOn, isPlaying, tracks]); //prettier-ignore
 
   useEffect(() => {
     console.log("UPDATING FrOM SECTIONS");
     updateEventQueue();
   }, [sections]);
-  const updateInstrument = (notes, size, instrumentId) => {
+  // const updateInstrument = (notes, size, instrumentId) => {
+  //   console.log("updating", notes, size, instrumentId);
+  //   const oldInstrument = instruments.get(instrumentId);
+  //   const updated = oldInstrument.updateEvents(notes, size);
+  //   const oldList = instruments;
+  //   oldList[instrumentId] = updated;
+  //   console.log("updated instrument", updated);
+  //   setInstruments(oldList);
+  //   updateEventQueue();
+  //   //console.log("Insturment", instrument);
+  // };
+  const updateInstrument = (notes, action, size, instrumentId) => {
     console.log("updating", notes, size, instrumentId);
     const oldInstrument = instruments.get(instrumentId);
-    const updated = oldInstrument.updateEvents(notes, size);
+
+    let updated;
+
+    switch (action) {
+      case 0:
+        updated = oldInstrument.addNote(notes, size);
+        break;
+      case 1:
+        console.log("DELETING");
+        updated = oldInstrument.deleteNote(notes, size);
+        break;
+      case 2:
+        updated = oldInstrument.updateNote(notes, size);
+        break;
+      default:
+        break;
+    }
+
     const oldList = instruments;
     oldList[instrumentId] = updated;
     console.log("updated instrument", updated);
@@ -186,45 +218,49 @@ export default function Home() {
   };
 
   const initializeEventQueue = (queue, t, s, i) => {
-    t.map((track) => {
-      track.sections.map((sec) => {
-        const section = s.get(sec);
-        const startTime = section.startTime;
-        const instrument = i.get(section.instrument);
-        //console.log("TESTING", instrument);
-        const events = instrument.getEventList();
-        events.map((event, index) => {
-          event.map((e) => {
-            queue.at(startTime + index).push(e);
-          });
-        });
-      });
-    });
+    // t.map((track) => {
+    //   track.sections.map((sec) => {
+    //     const section = s.get(sec);
+    //     const startTime = section.startTime;
+    //     const instrument = i.get(section.instrument);
+    //     //console.log("TESTING", instrument);
+    //     const events = instrument.getEventList();
+    //     events.map((event, index) => {
+    //       event.map((e) => {
+    //         queue.at(startTime + index).push(e);
+    //       });
+    //     });
+    //   });
+    // });
 
     setEventQueue(queue);
   };
   const updateEventQueue = () => {
-    try {
-      const queue = emptyQueue(eventQueue);
-      tracks.map((track) => {
-        track.sections.map((sec) => {
-          const section = sections.get(sec);
-          //console.log(sections, section, section.startTime);
-          const startTime = section.startTime;
-          const instrument = instruments.get(section.instrument);
-          const events = instrument.getEventList();
-          events.map((event, index) => {
-            event.map((e) => {
-              queue.at(startTime + index).push(e);
-            });
+    console.log("trying to update", tracks);
+    const queue = emptyQueue(eventQueue);
+    tracks.map((track) => {
+      track.sections.map((sec) => {
+        const section = sections.get(sec);
+        console.log(sections, sec, section);
+        console.log(section.startTime);
+        const startTime = section.startTime;
+        const instrument = instruments.get(section.instrument);
+        const events = instrument.getEventList();
+        // events.map((event, index) => {
+        //   event.map((e) => {
+        //     queue.at(startTime + index).push(e);
+        //   });
+        // });
+        console.log("Trying something new", events);
+        for (let event of events) {
+          event[1].map((e) => {
+            queue.at(startTime + event[0]).push(e);
           });
-        });
+        }
       });
+    });
 
-      setEventQueue(queue);
-    } catch (e) {
-      console.log("Whelp");
-    }
+    setEventQueue(queue);
   };
 
   const addSection = (trackId, id, start) => {
@@ -323,20 +359,20 @@ export default function Home() {
     return metronomeOn;
   };
   function scheduleNote(beatNumber, time) {
-    if (beatNumber === 0) {
-      updateEventQueue();
-    }
+    // if (beatNumber === 0) {
+    //   updateEventQueue();
+    // }
     if (getMetronome() === true && beatNumber % 4 == 0) {
       //console.log("Scheduled some metronome", metronomeOn, time);
       playSample(dtmf, time);
     }
 
     if (eventQueue[beatNumber].length > 0) {
-      console.log("BEAT: ", beatNumber, eventQueue[beatNumber]);
+      // console.log("BEAT: ", beatNumber, eventQueue[beatNumber]);
 
       eventQueue[beatNumber].forEach((e) => {
         //console.log("Playing ", e.note);
-        console.log(e, e.instrumentId, instruments[e.instrumentId]);
+        // console.log(e, e.instrumentId, instruments[e.instrumentId]);
         instruments.get(e.instrumentId).handleEvent(e, time);
       });
     }
@@ -348,7 +384,6 @@ export default function Home() {
 
       nextNote();
     }
-    console.log("Setting timeout");
     setTimerID(setTimeout(scheduler, lookahead));
   }
 
@@ -367,6 +402,7 @@ export default function Home() {
   //const synth = new SynthModel(audioContext);
 
   const handleStop = () => {
+    console.log("STOPPPPING");
     setIsPlaying(false);
     window.clearTimeout(timerID);
     instruments.forEach((instrument) => {
@@ -520,7 +556,7 @@ export default function Home() {
     const currInstrument = instruments.get(currSection.instrument);
 
     //console.log(currInstrument, selectedSection, section.sectionId);
-
+    //console.log("RENDEring SECTIONS");
     return (
       <SectionMarker
         key={section}

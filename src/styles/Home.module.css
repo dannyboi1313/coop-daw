@@ -11,10 +11,20 @@
   width: 100%;
   min-height: 30rem;
 }
+.sectionWrapper {
+  background-color: aquamarine;
+  height: 0;
+  width: 0;
+}
+.hitBox {
+  height: 100%;
+  width: 100%;
+}
 .sectionMarker {
   position: absolute;
   width: 100%;
   height: 95%;
+  top: 0;
   z-index: 1;
   grid-column: 3 / 10;
   border-radius: 1rem;

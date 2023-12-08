@@ -31,10 +31,53 @@ export default class DrumFacade extends InstrumentFacade {
     return this;
   };
 
+  addNote = (newNote) => {
+    console.log("Adding note", newNote, "Events", this.events);
+    this.notes.set(newNote.id, newNote);
+    //const key = mapRowToKey(newNote.row);
+
+    if (this.events.has(newNote.start)) {
+      const currArr = this.events.get(newNote.start);
+      console.log("Not First time at time t", currArr);
+      currArr.push({
+        type: "trigger",
+        id: newNote.id,
+        note: newNote.row,
+        instrumentId: this.instrumentId,
+      });
+      this.events.set(newNote.start, currArr);
+    } else {
+      console.log("First time at time t");
+      this.events.set(newNote.start, [
+        {
+          type: "trigger",
+          id: newNote.id,
+          note: newNote.row,
+          instrumentId: this.instrumentId,
+        },
+      ]);
+    }
+
+    console.log("Aftermath ", this.events);
+    return this;
+  };
+
+  deleteNote = (note) => {
+    console.log("deleting", note);
+    const currStartArr = this.events.get(note.start);
+    console.log("BEFORE DELETION", currStartArr);
+    const updatedStartArr = currStartArr.filter((curr) => {
+      return curr.id !== note.id;
+    });
+    console.log("AFTER DELTION", updatedStartArr);
+    this.events.set(note.start, updatedStartArr);
+    this.notes.delete(note.id);
+    return this;
+  };
+
   handleEvent = (event, time = 0) => {
     switch (event.type) {
       case "trigger":
-        console.log("triggered");
         this.drumMachine.playSample(event.note, time);
         break;
       default:

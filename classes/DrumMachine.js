@@ -60,12 +60,6 @@ export default class DrumMachine {
 
   playSample(sample, time) {
     let playbackRate = 1;
-    console.log(
-      "playing sample",
-      sample,
-      this.sampleBuffers,
-      this.sampleBuffers.get(sample)
-    );
     const sampleSource = new AudioBufferSourceNode(this.AC, {
       buffer: this.sampleBuffers.get(sample),
       playbackRate,

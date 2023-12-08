@@ -73,21 +73,30 @@ const SectionMarker = ({
       style={{
         gridColumn: `${section.startTime + 1} / span ${instrument.getSectionLength()}`, //prettier-ignore
       }}
-      onMouseDown={handleMouseDown}
-      onMouseUp={handleMouseUp}
-      onClick={() => {
-        handleClick(section.sectionId);
-      }}
-      onDoubleClick={(event) => {
-        handleDoubleClick(event);
-      }}
-      onContextMenu={() => {
-        if (!displayEditor) {
-          handleDelete(section.sectionId);
-        }
-      }}
     >
-      {displayEditor && renderEditor()}
+      <div
+        className={styles.hitBox}
+        onMouseDown={handleMouseDown}
+        onMouseUp={handleMouseUp}
+        onClick={() => {
+          handleClick(section.sectionId);
+        }}
+        onDoubleClick={(event) => {
+          handleDoubleClick(event);
+        }}
+        onContextMenu={() => {
+          if (!displayEditor) {
+            handleDelete(section.sectionId);
+          }
+        }}
+      ></div>
+      <div
+        onClick={(e) => {
+          e.preventDefault();
+        }}
+      >
+        {displayEditor && renderEditor()}
+      </div>
     </div>
   );
 };

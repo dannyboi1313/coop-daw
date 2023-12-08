@@ -7,7 +7,7 @@ const NUM_KEYS = 72;
 const DEFAULT_NOTE_SIZE = 3;
 
 const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
-  console.log("Rendering grid with id ", instrumentID);
+  //console.log("Rendering grid with id ", instrumentID);
   const [gridSize, setGridSize] = useState(80);
 
   const [grid, setGrid] = useState(() => {
@@ -29,10 +29,7 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   }, []);
 
   useEffect(() => {
-    // if (!rendered) {
-    //   updateGrid();
-    //   setRendered(true);
-    // }
+    console.log("CALING FROM NOTES");
     updateGrid();
   }, [notes, draggingNote, expandRightNote]);
 
@@ -40,14 +37,18 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     if (cell !== null) {
       return;
     }
+    //Add a new note
     const currNotes = notes;
     const start = col;
     const end = start + DEFAULT_NOTE_SIZE;
     const id = currNotes.size + 1;
-    currNotes.set(id, { id: id, row: row, start: start, end: end });
+    const newNote = { id: id, row: row, start: start, end: end };
+    currNotes.set(id, newNote);
 
     setNotes(currNotes);
     updateGrid();
+    //Add a note == 0 action
+    updateNotes(newNote, 0, gridSize, instrumentID);
   };
 
   const initializeGrid = () => {
@@ -72,7 +73,7 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
 
   const updateGrid = () => {
     initializeGrid();
-    updateNotes(notes, gridSize, instrumentID);
+    // updateNotes(notes, gridSize, instrumentID);
   };
 
   const handleNoteClick = (row, col, note) => {
