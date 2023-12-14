@@ -123,7 +123,7 @@ export default class SynthFacade extends InstrumentFacade {
     if (newNote.end >= this.sectionLength) {
       this.sectionLength = newNote.end + 4;
     }
-    console.log("Aftermath ", this.events);
+    console.log("Aftermath ", this.events, this.notes);
     return this;
   };
   deleteNote = (note) => {
@@ -135,11 +135,24 @@ export default class SynthFacade extends InstrumentFacade {
     const updatedEndArr = currEndArr.filter((curr) => {
       return curr.id !== note.id;
     });
-    this.events.set(newNote.start, updatedStartArr);
-    this.events.set(newNote.end, updatedEndArr);
+    this.events.set(note.start, updatedStartArr);
+    this.events.set(note.end, updatedEndArr);
     this.notes.delete(note.id);
+    return this;
   };
-  editNote = (noteId, newNote) => {};
+  editNote = (noteToEdit) => {
+    console.log("NOTES", this.notes, this.events);
+    const oldNote = this.notes.get(noteToEdit.id);
+    console.log("TRYING TO EDIT NOTES", noteToEdit, oldNote);
+    try {
+      console.log("CALLING DELETE");
+      this.deleteNote(oldNote);
+      console.log("CALLING ADD");
+      this.addNote(noteToEdit);
+    } catch (err) {
+      console.log("WHAT THE HECK");
+    }
+  };
 
   handleEvent = (event, time = 0) => {
     switch (event.type) {

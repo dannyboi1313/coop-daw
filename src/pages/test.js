@@ -49,7 +49,6 @@ export default function Home() {
 
   useEffect(() => {
     // Attach the event listener when the component mounts
-    console.log("KEYBINDING SECTION")
     window.addEventListener("keydown", handleKeyDown);
 
     // Detach the event listener when the component unmounts
@@ -159,7 +158,6 @@ export default function Home() {
   // }, [loading, instrument, metronomeOn, isPlaying, tracks]); //prettier-ignore
 
   useEffect(() => {
-    console.log("UPDATING FrOM SECTIONS");
     updateEventQueue();
   }, [sections]);
   // const updateInstrument = (notes, size, instrumentId) => {
@@ -173,8 +171,8 @@ export default function Home() {
   //   updateEventQueue();
   //   //console.log("Insturment", instrument);
   // };
+
   const updateInstrument = (notes, action, size, instrumentId) => {
-    console.log("updating", notes, size, instrumentId);
     const oldInstrument = instruments.get(instrumentId);
 
     let updated;
@@ -184,11 +182,10 @@ export default function Home() {
         updated = oldInstrument.addNote(notes, size);
         break;
       case 1:
-        console.log("DELETING");
         updated = oldInstrument.deleteNote(notes, size);
         break;
       case 2:
-        updated = oldInstrument.updateNote(notes, size);
+        updated = oldInstrument.editNote(notes, size);
         break;
       default:
         break;
@@ -196,7 +193,6 @@ export default function Home() {
 
     const oldList = instruments;
     oldList[instrumentId] = updated;
-    console.log("updated instrument", updated);
     setInstruments(oldList);
     updateEventQueue();
     //console.log("Insturment", instrument);
@@ -236,13 +232,10 @@ export default function Home() {
     setEventQueue(queue);
   };
   const updateEventQueue = () => {
-    console.log("trying to update", tracks);
     const queue = emptyQueue(eventQueue);
     tracks.map((track) => {
       track.sections.map((sec) => {
         const section = sections.get(sec);
-        console.log(sections, sec, section);
-        console.log(section.startTime);
         const startTime = section.startTime;
         const instrument = instruments.get(section.instrument);
         const events = instrument.getEventList();
@@ -251,7 +244,6 @@ export default function Home() {
         //     queue.at(startTime + index).push(e);
         //   });
         // });
-        console.log("Trying something new", events);
         for (let event of events) {
           event[1].map((e) => {
             queue.at(startTime + event[0]).push(e);
@@ -268,7 +260,6 @@ export default function Home() {
     const currSections = new Map(sections);
     const sectionInstrument = instruments.get(trackId);
     const sectionTrack = tracks[trackId - 1];
-    console.log("adding note", trackId, start, newId, sectionInstrument);
     currSections.set(newId, {
       sectionId: newId,
       track: trackId,
@@ -278,7 +269,6 @@ export default function Home() {
     });
     //setSections(null);
 
-    console.log("Section added", currSections === sections);
     const tracksCopy = tracks;
     tracksCopy[trackId - 1].sections.push(newId);
     setTracks(tracksCopy);
@@ -289,7 +279,6 @@ export default function Home() {
     const currSections = new Map(sections);
     const sectionInstrument = instruments.get(id);
     const sectionToDelete = currSections.get(id);
-    console.log("Deleting", id, sectionToDelete, currSections);
     const tracksCopy = tracks;
     tracksCopy[sectionToDelete.track - 1].sections = tracksCopy[
       sectionToDelete.track - 1
@@ -422,7 +411,6 @@ export default function Home() {
     setSelectedGridCell({ row: row, col: index });
   };
   const findNextOpenSlot = (track) => {
-    console.log("Finding next open slot", track, sections);
     //If track is empyt, just add it to the first slot
     if (track.sections.length === 0) {
       return 0;
@@ -431,19 +419,12 @@ export default function Home() {
     const sortedTracks = track.sections.sort(
       (a, b) => sections.get(a).startTime - sections.get(b).startTime
     );
-    console.log(sortedTracks);
     const currInstrument = instruments.get(
       sections.get(sortedTracks[0]).instrument
     );
     const minLength = currInstrument.getSectionLength(); //prettier-ignore
     //Do some fancy mathing to check if the distance between any of the sections is large enough to fit a new section
-    console.log(minLength);
     for (let i = 0; i < sortedTracks.length - 1; i++) {
-      console.log(
-        sortedTracks[i],
-        sections.get(sortedTracks[i]),
-        sections.get(sortedTracks[i + 1])
-      );
       if (
         (sections.get(sortedTracks[i+1]).startTime)  - sections.get(sortedTracks[i]).startTime  > (minLength * 2) //prettier-ignore
       ) {
@@ -451,11 +432,6 @@ export default function Home() {
       }
     }
     // Make sure we catch the cases from the endTime of the last section to the end of the grid
-    console.log(
-      "Last Check",
-      sortedTracks[sortedTracks.length - 1],
-      sections.get(sortedTracks[sortedTracks.length - 1])
-    );
     if (
       NUM_GRIDS - sections.get(sortedTracks[sortedTracks.length - 1]).startTime > minLength * 2 //prettier-ignore
     ) {
@@ -469,7 +445,6 @@ export default function Home() {
 
   const handleAddSectionClick = (track) => {
     const indexToAdd = findNextOpenSlot(track);
-    console.log("FOUND AT INDEX:", indexToAdd);
     if (indexToAdd === -1) return;
     addSection(track.id, track.id, indexToAdd);
   };

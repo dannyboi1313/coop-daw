@@ -17,7 +17,7 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
     }
     return newArray;
   }); // Grid state
-  const [notes, setNotes] = useState(instrumentNotes);
+  const [notes, setNotes] = useState(new Map(instrumentNotes));
   const [noteCount, setNoteCount] = useState(instrumentNotes.length);
 
   const [rendered, setRendered] = useState(false);
@@ -29,7 +29,6 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   }, []);
 
   useEffect(() => {
-    console.log("CALING FROM NOTES");
     updateGrid();
   }, [notes, draggingNote, expandRightNote]);
 
@@ -54,7 +53,6 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const initializeGrid = () => {
     //Update grid with rectangles
     const newGrid = grid;
-    console.log("Updating", newGrid, notes);
 
     for (let value of notes.values()) {
       //   console.log("val", value);
@@ -79,17 +77,14 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const handleNoteClick = (row, col, note) => {
     // Start dragging the not
     if (note && expandRightNote === null) {
-      console.log("setting drag", note);
       setDraggingNote({ note: note, clickX: row, clickY: col });
     }
   };
 
   const handleNoteExpand = (direction, row, col, note) => {
     // Start dragging the note
-    console.log("Expanding", note);
 
     if (note) {
-      console.log("setting expand", note);
       setExpandRightNote({ note: note, clickX: row, clickY: col });
     }
   };
@@ -127,7 +122,6 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
         return;
 
       if (col < expandRightNote.note.start + MIN_NOTE_SIZE - 1) return;
-      console.log("drag somebody", row, col);
 
       const note = expandRightNote.note;
       const oldRow = note.row;
@@ -135,10 +129,7 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
       const oldId = note.id;
 
       //Delete old imprint of note in grid
-      console.log("Old", grid);
-
       deleteNoteOnGrid(oldStart, note.end, oldRow);
-      console.log("Fresh", grid);
 
       const id = oldId;
       const updatedNote = {
@@ -169,14 +160,23 @@ const NoteGrid = ({ instrumentNotes, updateNotes, timer, instrumentID }) => {
   const handleNoteDelete = (note) => {
     const noteToDelete = notes.get(note.id);
     if (noteToDelete !== null) {
-      const updateNotes = notes;
+      const updatedNotes = notes;
       deleteNoteOnGrid(noteToDelete.start, noteToDelete.end, noteToDelete.row);
-      updateNotes.delete(note.id);
-      setNotes(updateNotes);
+      updateNotes(noteToDelete, 1, gridSize, instrumentID);
+      updatedNotes.delete(note.id);
+      setNotes(updatedNotes);
     }
   };
   const handleGridRelease = () => {
     // Stop dragging the note
+    if (draggingNote) {
+      const editedNote = notes.get(draggingNote.note.id);
+      updateNotes(editedNote, 2, gridSize, instrumentID);
+    }
+    if (expandRightNote) {
+      const editedNote = notes.get(expandRightNote.note.id);
+      updateNotes(editedNote, 2, gridSize, instrumentID);
+    }
     setDraggingNote(null);
     setExpandRightNote(null);
   };
