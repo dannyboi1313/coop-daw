@@ -2,6 +2,7 @@ import styles from "@/styles/Home.module.css";
 import { useState } from "react";
 import SynthPlayer from "./editors/SynthEditor";
 import DrumMachineEditor from "./editors/DrumMachineEditor";
+import { getSolidColor, getTransparentColor } from "../utils/uiUtils";
 
 const SectionMarker = ({
   section,
@@ -55,27 +56,16 @@ const SectionMarker = ({
     }
   };
 
-  const getColorClass = () => {
-    switch (section.color) {
-      case "blue":
-        return styles.blueMarker;
-      case "pink":
-        return styles.pinkMarker;
-      default:
-        return "";
-    }
-  };
   return (
     <div
-      className={`${styles.sectionMarker} ${getColorClass()} ${
-        selected && styles.selected
-      }`}
+      className={`${styles.sectionMarker} } ${selected && styles.selected}`}
       style={{
         gridColumn: `${section.startTime + 1} / span ${instrument.getSectionLength()}`, //prettier-ignore
       }}
     >
       <div
-        className={styles.hitBox}
+        className={`${styles.hitBox}`}
+        style={{ backgroundColor: `${getTransparentColor(section.color)}` }}
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onClick={() => {
@@ -89,7 +79,19 @@ const SectionMarker = ({
             handleDelete(section.sectionId);
           }
         }}
-      ></div>
+      >
+        <div
+          className={`${styles.sectionOverlay}`}
+          style={{
+            background: `linear-gradient(90deg, ${getSolidColor(
+              section.color
+            )} 15%, rgba(192, 85, 119, 0) 95%)`,
+          }}
+        >
+          <div className={styles.sectionOverlayIndicator}></div>
+          <h4>{instrument.name}</h4>
+        </div>
+      </div>
       <div
         onClick={(e) => {
           e.preventDefault();

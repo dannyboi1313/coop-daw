@@ -1,0 +1,154 @@
+.volumeSlider {
+  display: flex;
+  align-self: center;
+  background-color: black;
+  height: min-content;
+  padding: 0.2rem 0.2rem;
+  border-radius: 2rem;
+}
+
+.volumeSlider input {
+  --thumb-height: 0.75rem;
+  --track-height: 0.3rem;
+  --brightness-hover: 180%;
+  --brightness-down: 80%;
+  --clip-edges: 0.25rem;
+}
+
+.volumeSlider input {
+  position: relative;
+  background: #fff0;
+  overflow: hidden;
+}
+
+.volumeSlider input:active {
+  cursor: grabbing;
+}
+
+.volumeSlider input:disabled {
+  filter: grayscale(1);
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* === WebKit specific styles === */
+.volumeSlider input,
+.volumeSlider input::-webkit-slider-runnable-track,
+.volumeSlider input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  transition: all ease 100ms;
+  height: var(--thumb-height);
+}
+
+.volumeSlider input::-webkit-slider-runnable-track,
+.volumeSlider input::-webkit-slider-thumb {
+  position: relative;
+}
+
+.volumeSlider input::-webkit-slider-thumb {
+  --thumb-radius: 55px;
+  --clip-top: calc((var(--thumb-height) - var(--track-height)) * 0.5 - 0.5px);
+  --clip-bottom: calc(var(--thumb-height) - var(--clip-top));
+  --clip-further: calc(100% + 1px);
+  --box-fill: calc(-100vmax - var(--thumb-width, var(--thumb-height))) 0 0
+    100vmax green;
+
+  width: var(--thumb-width, var(--thumb-height));
+
+  background-color: gray;
+  box-shadow: var(--box-fill);
+  border-radius: 50%;
+
+  clip-path: polygon(
+    100% -1px,
+    var(--clip-edges) -1px,
+    0 var(--clip-top),
+    -100vmax var(--clip-top),
+    -100vmax var(--clip-bottom),
+    0 var(--clip-bottom),
+    var(--clip-edges) 100%,
+    var(--clip-further) var(--clip-further)
+  );
+}
+
+.volumeSlider input:hover::-webkit-slider-thumb {
+  filter: brightness(var(--brightness-hover));
+  cursor: grab;
+}
+
+.volumeSlider input:active::-webkit-slider-thumb {
+  filter: brightness(var(--brightness-down));
+  cursor: grabbing;
+}
+
+.volumeSlider input::-webkit-slider-runnable-track {
+  background: linear-gradient(var(--track-color) 0 0) scroll no-repeat center /
+    100% calc(var(--track-height) + 1px);
+}
+
+.volumeSlider input:disabled::-webkit-slider-thumb {
+  cursor: not-allowed;
+}
+
+/* === Firefox specific styles === */
+.volumeSlider input,
+.volumeSlider input::-moz-range-track,
+.volumeSlider input::-moz-range-thumb {
+  appearance: none;
+  transition: all ease 100ms;
+  height: var(--thumb-height);
+}
+
+.volumeSlider input::-moz-range-track,
+.volumeSlider input::-moz-range-thumb,
+.volumeSlider input::-moz-range-progress {
+  background: #fff0;
+}
+
+.volumeSlider input::-moz-range-thumb {
+  background: currentColor;
+  border: 0;
+  width: var(--thumb-width, var(--thumb-height));
+  border-radius: var(--thumb-width, var(--thumb-height));
+  cursor: grab;
+}
+
+.volumeSlider input:active::-moz-range-thumb {
+  cursor: grabbing;
+}
+
+.volumeSlider input::-moz-range-track {
+  width: 100%;
+  background: var(--track-color);
+}
+
+.volumeSlider input::-moz-range-progress {
+  appearance: none;
+  background: currentColor;
+  transition-delay: 30ms;
+}
+
+.volumeSlider input::-moz-range-track,
+.volumeSlider input::-moz-range-progress {
+  height: calc(var(--track-height) + 1px);
+  border-radius: var(--track-height);
+}
+
+.volumeSlider input::-moz-range-thumb,
+.volumeSlider input::-moz-range-progress {
+  filter: brightness(100%);
+}
+
+.volumeSlider input:hover::-moz-range-thumb,
+.volumeSlider input:hover::-moz-range-progress {
+  filter: brightness(var(--brightness-hover));
+}
+
+.volumeSlider input:active::-moz-range-thumb,
+.volumeSlider input:active::-moz-range-progress {
+  filter: brightness(var(--brightness-down));
+}
+
+.volumeSlider input:disabled::-moz-range-thumb {
+  cursor: not-allowed;
+}

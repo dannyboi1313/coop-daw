@@ -18,12 +18,15 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import DrumFacade from "../../models/DrumFacade";
 import DrumMachine from "../../classes/DrumMachine";
+import { getSolidColor } from "../../utils/uiUtils";
+import VolumeSlider from "../../components/UIElements/VolumeSlider";
 
-const NUM_GRIDS = 80;
+const NUM_GRIDS = 320;
 
 const colors = {
   blue: "blue",
   pink: "pink",
+  yellow: "yellow",
 };
 
 export default function Home() {
@@ -46,6 +49,8 @@ export default function Home() {
   const [selectedGridCell, setSelectedGridCell] = useState(null);
   const [copiedSectionId, setCopiedSectionId] = useState(null);
   const [draggingSection, setDraggingSection] = useState(null);
+
+  const [lastBeatToPlay, setLastBeatToPlay] = useState(null);
 
   useEffect(() => {
     // Attach the event listener when the component mounts
@@ -133,14 +138,14 @@ export default function Home() {
       track: 3,
       startTime: 0,
       instrument: 3,
-      color: colors.pink,
+      color: colors.yellow,
     });
     setSections(initialSections);
-
+    setLastBeatToPlay(64);
     const initialTracks = [
       { id: 1, volumn: 80, sections: [1], color: colors.blue },
       { id: 2, volumn: 80, sections: [2], color: colors.pink },
-      { id: 3, volumn: 80, sections: [3], color: colors.pink },
+      { id: 3, volumn: 80, sections: [3], color: colors.yellow },
     ];
     setTracks(initialTracks);
     const eq = [];
@@ -336,7 +341,7 @@ export default function Home() {
     nextNoteTime += secondsPerBeat; // Add beat length to last beat time
 
     // Advance the beat number, wrap to zero when reaching 4
-    currentNote = (currentNote + 1) % NUM_GRIDS;
+    currentNote = (currentNote + 1) % lastBeatToPlay;
     // if (currentNote === 0) {
     //   console.log("Restart count.. Sections", sections);
     //   handleStop();
@@ -448,6 +453,29 @@ export default function Home() {
     if (indexToAdd === -1) return;
     addSection(track.id, track.id, indexToAdd);
   };
+  const getBeatStyle = (index) => {
+    switch (index % 16) {
+      case 0:
+        return styles.beatFull;
+      case 4:
+        return styles.beatQuarter;
+      case 8:
+        return styles.beatQuarter;
+      case 12:
+        return styles.beatQuarter;
+
+      case 2:
+        return styles.beatEight;
+      case 6:
+        return styles.beatEight;
+      case 10:
+        return styles.beatEight;
+      case 14:
+        return styles.beatEight;
+      default:
+        return styles.beatSixteen;
+    }
+  };
 
   const handleSelectionClick = (id, col) => {
     //setSelectedSection(id);
@@ -481,6 +509,15 @@ export default function Home() {
       setSections(currSections);
     }
   };
+  const getNotchStyle = (col) => {
+    if (col % 16 === 0) {
+      return styles.largeNotch;
+    } else if (col % 8 === 0) {
+      return styles.mediumNotch;
+    } else if (col % 4 === 0) {
+      return styles.smallNotch;
+    }
+  };
 
   const renderGridCells = (row) => {
     const cellArray = Array.from({ length: NUM_GRIDS }, (_, index) => index);
@@ -495,7 +532,8 @@ export default function Home() {
                 selectedGridCell.col === index &&
                 selectedGridCell.row === row &&
                 styles.selectedGrid
-              }`}
+              } 
+              ${getBeatStyle(index)}`}
               onClick={() => {
                 handleGridCellClick(index, row);
               }}
@@ -515,8 +553,8 @@ export default function Home() {
       <>
         {cellArray.map((index) => {
           return (
-            <div className={`${styles.gridCell}}`}>
-              {index % 16 === 0 && index / 16 + (index % 16) + 1}
+            <div className={`${styles.gridCellMarker} ${getNotchStyle(index)}`}>
+              {index % 16 === 0 && index / 16 + (index % 16)}
             </div>
           );
         })}
@@ -548,6 +586,17 @@ export default function Home() {
     );
   };
 
+  const renderTimePointer = () => {
+    return (
+      <div
+        className={styles.timeBar}
+        style={{
+          left: `calc(${counter}*.5rem)`, // Calculate left position based on counter
+          height: "100vh",
+        }}
+      ></div>
+    );
+  };
   const handleTestClick = () => {
     console.log(dtmf);
     drum.handleEvent(
@@ -568,11 +617,16 @@ export default function Home() {
         className={`${styles.main} bg-darkest text-light`}
         onContextMenu={preventDefaults}
       >
-        <div className="flex flex-row w-100 justify-between align-center bg-darker h-5 p-1">
+        <div className="flex flex-row w-100 justify-between align-center bg-darker h-4 p-1">
           <div className="">Title - Project Name</div>
-          <div className="flex h-100 justify-around ps-1">
+          <div className="flex h-100 justify-around gap-1 ps-1">
             <div className="bg-grey-dark h-100 flex flex-row justify-between align-center rounded-1 ps-1">
-              <button className={styles.buttonControl}>
+              <button
+                className={styles.buttonControl}
+                onClick={() => {
+                  setCounter(0);
+                }}
+              >
                 <FontAwesomeIcon icon={faBackwardStep} size="lg" />
               </button>
               <div className="vert-divider"></div>
@@ -588,10 +642,20 @@ export default function Home() {
                 <FontAwesomeIcon icon={faRepeat} size="lg" />
               </button>
             </div>
-            <div className="bg-darkest ml-1 w-8 flex align-center">
-              <p> {counter / 16 + 1}</p>
+            <div className="bg-darkest ml-1 w-8 flex gap-1 flex-end align-center br-1 p-s">
+              <div className="h-100 flex t-center flex-col flex-end">
+                <label className="tc-grey t-small">Time</label>
+                <p> {(counter / 16).toFixed(2)}</p>
+              </div>
+              <div className="h-100 flex t-center flex-col flex-end">
+                <label className="tc-grey t-small">BPM</label>
+                <p>{tempo}</p>
+              </div>
+              <div className="h-100 flex t-center flex-col flex-end">
+                <p>4/4</p>
+              </div>
             </div>
-            <button
+            {/* <button
               onClick={() => {
                 handleMetronomeClick();
               }}
@@ -605,18 +669,22 @@ export default function Home() {
               onMouseDown={preventDefaults}
             >
               WOOOOHOOO
-            </button>
-            <div>Master Volume</div>
+            </button> */}
+            <div className="flex ">
+              <VolumeSlider />
+            </div>
           </div>
 
           <div>Icons Share</div>
         </div>
         <div className={styles.trackWrapper}>
           <div className={styles.trackColumn}>
+            <div className={styles.topPadding}>
+              <h1>Tracks</h1>
+            </div>
             {tracks.map((track, index) => {
               return (
                 <div className={styles.trackInfo}>
-                  track {instruments.get(index + 1).name}
                   <button
                     onClick={() => {
                       handleAddSectionClick(track);
@@ -624,27 +692,62 @@ export default function Home() {
                   >
                     <FontAwesomeIcon icon={faAdd} size="xl" />
                   </button>
+                  <div className={styles.trackInfoRow}>
+                    <h2>0{index + 1}</h2>
+                    <h1>{instruments.get(index + 1).name}</h1>
+                  </div>
+                  <div className={styles.trackInfoRow}>
+                    <h3>Instrument</h3>
+                    <div>
+                      <p>Selector</p>
+                    </div>
+                  </div>
+                  <div className={styles.trackInfoRow}>
+                    <h3>Elements</h3>
+                    <button>Rev</button>
+                    <button>Rev</button>
+                    <button>Rev</button>
+                  </div>
+                  <div
+                    className={`${styles.colorIndicator}`}
+                    style={{
+                      backgroundColor: `${getSolidColor(track.color)}`,
+                    }}
+                  ></div>
                 </div>
               );
             })}
           </div>
           <div className={styles.gridContainer}>
             <div
+              className={styles.timeBarContainer}
               style={{
                 display: "grid",
-                gridTemplateColumns: `repeat(${NUM_GRIDS}, 1rem)`,
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
+                position: "relative",
+                transition: "grid ease 0.3s",
+              }}
+            >
+              {renderTimePointer()}
+            </div>
+            <div
+              className={`bg-dark ${styles.topPadding}`}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
                 position: "relative",
               }}
             >
               {renderGridMarker()}
             </div>
+
             {tracks.map((track) => {
               return (
                 <div
                   className={styles.trackContainer}
                   style={{
                     display: "grid",
-                    gridTemplateColumns: `repeat(${NUM_GRIDS}, 1rem)`,
+                    gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
                     position: "relative",
                   }}
                   onMouseDown={preventDefaults}
@@ -656,6 +759,61 @@ export default function Home() {
                 </div>
               );
             })}
+            <div
+              className={styles.trackContainer}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
+                position: "relative",
+              }}
+              onMouseDown={preventDefaults}
+            >
+              {renderGridCells(4)}
+            </div>
+            <div
+              className={styles.trackContainer}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
+                position: "relative",
+              }}
+              onMouseDown={preventDefaults}
+            >
+              {renderGridCells(5)}
+            </div>
+            <div
+              className={styles.trackContainer}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
+                position: "relative",
+              }}
+              onMouseDown={preventDefaults}
+            >
+              {renderGridCells(5)}
+            </div>
+            <div
+              className={styles.trackContainer}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
+                position: "relative",
+              }}
+              onMouseDown={preventDefaults}
+            >
+              {renderGridCells(5)}
+            </div>
+            <div
+              className={styles.trackContainer}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${NUM_GRIDS}, .5rem)`,
+                position: "relative",
+              }}
+              onMouseDown={preventDefaults}
+            >
+              {renderGridCells(5)}
+            </div>
           </div>
         </div>
       </main>

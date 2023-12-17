@@ -12,6 +12,7 @@
   --color-grey-light: rgb(129, 126, 146);
   --color-light: rgb(217, 217, 217);
   --color-white: #fff;
+  --color-light-accent: rgba(245, 245, 245, 0.04);
 }
 
 * {
@@ -19,6 +20,27 @@
   padding: 0;
   margin: 0;
   font-family: var(--font-mono);
+}
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+  scrollbar-width: auto;
+  scrollbar-color: var(--color-grey-dark) var(--color-light);
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-grey-dark);
+  border-radius: 4px;
 }
 
 html,
@@ -85,8 +107,17 @@ body {
 .justify-around {
   justify-content: space-around;
 }
+.gap-1 {
+  gap: 1rem;
+}
+.t-center {
+  text-align: center;
+}
 .justify-between {
   justify-content: space-between;
+}
+.flex-end {
+  justify-content: flex-end;
 }
 .align-center {
   align-items: center;
@@ -138,29 +169,39 @@ body {
   color: var(--color-grey-medium);
 }
 .p-1 {
-  padding: 1rem;
+  padding: 0.75rem;
 }
 .pt-1 {
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
 .ps-1 {
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
 }
 
 .h-2 {
   height: 2rem;
 }
-.h-5 {
-  height: 5rem;
+.h-4 {
+  height: 4rem;
 }
+
 .h-100 {
   height: 100%;
+}
+.p-s {
+  padding: 0.1rem 1rem;
+}
+.br-1 {
+  border-radius: 4px;
 }
 
 .w-8 {
   width: 15rem;
+}
+.bottom {
+  align-items: flex-end;
 }
 
 .vert-divider {
@@ -173,4 +214,10 @@ body {
 
 .rounded-1 {
   border-radius: 0.5rem;
+}
+.tc-grey {
+  color: var(--color-grey-dark);
+}
+.t-small {
+  font-size: small;
 }
