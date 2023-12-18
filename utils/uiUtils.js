@@ -23,3 +23,9 @@ export const getTransparentColor = (color) => {
       return "";
   }
 };
+
+export const colors = {
+  blue: "blue",
+  pink: "pink",
+  yellow: "yellow",
+};

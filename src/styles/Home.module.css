@@ -216,3 +216,19 @@
   transition: left ease 0.1s;
   z-index: 100;
 }
+
+.trackColumn button {
+  background-color: var(--color-dark-medium);
+  color: var(--color-light);
+  border: none;
+  margin-top: 1rem;
+}
+
+.module {
+  position: absolute;
+  background-color: var(--color-dark-light);
+  left: 50%;
+  top: 50%;
+  z-index: 10000;
+  transform: translate(-50%, -50%);
+}

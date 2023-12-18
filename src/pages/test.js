@@ -18,16 +18,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import DrumFacade from "../../models/DrumFacade";
 import DrumMachine from "../../classes/DrumMachine";
-import { getSolidColor } from "../../utils/uiUtils";
+import { getSolidColor, colors } from "../../utils/uiUtils";
 import VolumeSlider from "../../components/UIElements/VolumeSlider";
+import AddTrackOptionsModule from "../../components/AddTrackOptionsModule";
+import Error from "next/error";
 
 const NUM_GRIDS = 320;
-
-const colors = {
-  blue: "blue",
-  pink: "pink",
-  yellow: "yellow",
-};
 
 export default function Home() {
   const [tracks, setTracks] = useState([]);
@@ -51,6 +47,8 @@ export default function Home() {
   const [draggingSection, setDraggingSection] = useState(null);
 
   const [lastBeatToPlay, setLastBeatToPlay] = useState(null);
+  const [trackCount, setTrackCount] = useState(0);
+  const [showAddNewTrackOptions, setShowAddNewTrackOptions] = useState(false);
 
   useEffect(() => {
     // Attach the event listener when the component mounts
@@ -165,6 +163,8 @@ export default function Home() {
   useEffect(() => {
     updateEventQueue();
   }, [sections]);
+
+  useEffect(() => {}, [trackCount]);
   // const updateInstrument = (notes, size, instrumentId) => {
   //   console.log("updating", notes, size, instrumentId);
   //   const oldInstrument = instruments.get(instrumentId);
@@ -605,6 +605,55 @@ export default function Home() {
     );
   };
 
+  const handleShowTrackAdd = () => {
+    setShowAddNewTrackOptions(true);
+  };
+
+  const handleCloseTrackAdd = () => {
+    setShowAddNewTrackOptions(false);
+  };
+  const addTrack = (formData) => {
+    console.log(formData);
+    const trackId = tracks.length + 1;
+    const color = formData.color;
+
+    let newInstrument;
+
+    if (formData.instrument == "drums") {
+      newInstrument = new DrumFacade(audioContext, trackId);
+    } else if (formData.instrument == "synth") {
+      newInstrument = new SynthFacade(audioContext, trackId);
+    } else {
+      throw Error;
+    }
+    const i = instruments;
+    i.set(trackId, newInstrument);
+    setInstruments(i);
+    const currSections = sections;
+    currSections.set(trackId, {
+      sectionId: trackId,
+      track: trackId,
+      startTime: 0,
+      instrument: trackId,
+      color: color,
+    });
+
+    setSections(currSections);
+
+    const initialTracks = tracks;
+    initialTracks.push({
+      id: trackId,
+      volumn: 80,
+      sections: [trackId],
+      color: color,
+    });
+    setTracks(initialTracks);
+    setTrackCount(trackCount + 1);
+  };
+
+  const renderTrackOptions = () => {
+    return <AddTrackOptionsModule addTrack={addTrack} />;
+  };
   return (
     <>
       <Head>
@@ -617,6 +666,7 @@ export default function Home() {
         className={`${styles.main} bg-darkest text-light`}
         onContextMenu={preventDefaults}
       >
+        {showAddNewTrackOptions && renderTrackOptions()}
         <div className="flex flex-row w-100 justify-between align-center bg-darker h-4 p-1">
           <div className="">Title - Project Name</div>
           <div className="flex h-100 justify-around gap-1 ps-1">
@@ -717,6 +767,10 @@ export default function Home() {
                 </div>
               );
             })}
+
+            <button onClick={handleShowTrackAdd}>
+              <FontAwesomeIcon icon={faAdd}></FontAwesomeIcon>
+            </button>
           </div>
           <div className={styles.gridContainer}>
             <div

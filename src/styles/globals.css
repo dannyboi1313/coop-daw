@@ -1,9 +1,8 @@
 :root {
   --max-width: 1100px;
   --border-radius: 12px;
-  --font-mono: ui-monospace, Menlo, Monaco, "Cascadia Mono", "Segoe UI Mono",
-    "Roboto Mono", "Oxygen Mono", "Ubuntu Monospace", "Source Code Pro",
-    "Fira Mono", "Droid Sans Mono", "Courier New", monospace;
+  --font-normal: "Roboto", sans-serif;
+  --font-mono: "Roboto Mono", monospace;
   --color-dark-dark: rgb(10, 9, 14);
   --color-dark-medium: rgb(29, 29, 39);
   --color-dark-light: rgb(43, 43, 56);
@@ -49,6 +48,13 @@ body {
   overflow-x: hidden;
 }
 
+.font-normal {
+  font-family: var(--font-normal);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
 .piano-key {
   width: 5rem;
   height: 10rem;
@@ -178,6 +184,10 @@ body {
 .ps-1 {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+}
+.ps-2 {
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
 
 .h-2 {
