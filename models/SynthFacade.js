@@ -154,6 +154,18 @@ export default class SynthFacade extends InstrumentFacade {
     }
   };
 
+  async setUpInstrument(notes = null, events = null) {
+    if (notes) {
+      notes.forEach((note) => {
+        this.notes.set(note.id, note.note);
+      });
+    }
+    if (events) {
+      events.forEach((e) => {
+        this.events.set(e.time, e.notes);
+      });
+    }
+  }
   handleEvent = (event, time = 0) => {
     switch (event.type) {
       case "noteOn":

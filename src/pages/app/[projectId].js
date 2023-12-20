@@ -1,13 +1,10 @@
 import Head from "next/head";
-import { Inter, Play } from "next/font/google";
+import { useRouter } from "next/router";
 import styles from "@/styles/Home.module.css";
 import { useState, useEffect, useRef } from "react";
-import Player from "../../classes/Player";
-const inter = Inter({ subsets: ["latin"] });
-import { useAudioContext } from "../../providers/AudioContextContext";
-import SynthPlayer from "../../components/editors/SynthEditor";
-import SynthFacade from "../../models/SynthFacade";
-import SectionMarker from "../../components/SectionMarker";
+import { useAudioContext } from "../../../providers/AudioContextContext";
+import SynthFacade from "../../../models/SynthFacade";
+import SectionMarker from "../../../components/SectionMarker";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faPlay,
@@ -16,16 +13,17 @@ import {
   faBackwardStep,
   faAdd,
 } from "@fortawesome/free-solid-svg-icons";
-import DrumFacade from "../../models/DrumFacade";
-import DrumMachine from "../../classes/DrumMachine";
-import { getSolidColor, colors } from "../../utils/uiUtils";
-import VolumeSlider from "../../components/UIElements/VolumeSlider";
-import AddTrackOptionsModule from "../../components/AddTrackOptionsModule";
+import DrumFacade from "../../../models/DrumFacade";
+import { getSolidColor, colors } from "../../../utils/uiUtils";
+import VolumeSlider from "../../../components/UIElements/VolumeSlider";
+import AddTrackOptionsModule from "../../../components/AddTrackOptionsModule";
 import Error from "next/error";
 
 const NUM_GRIDS = 320;
 
 export default function Home() {
+  const router = useRouter();
+
   const [tracks, setTracks] = useState([]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [counter, setCounter] = useState(0);
@@ -86,74 +84,75 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // const fetchInstruments = async () => {
-    //   try {
-    //     // const response = await fetch("your-api-endpoint-for-instruments");
-    //     // const data = await response.json();
-    //     setInstruments(data);
-    //     setLoading(false); // Set loading to false once instruments are fetched
-    //   } catch (error) {
-    //     console.error("Error fetching instruments:", error);
-    //     setLoading(false); // Set loading to false in case of an error
-    //   }
-    // };
+    const fetchInstruments = async () => {
+      try {
+        const res = await fetch("/api/project-data");
+        const data = await res.json();
+        console.log("PROjECT DATA", data);
+
+        const loadedInstruments = data.instruments;
+        const loadedTracks = data.tracks;
+        const loadedSections = data.sections;
+
+        const currInstruments = instruments;
+
+        for (let i = 0; i < loadedInstruments.length; i++) {
+          let inst;
+          switch (loadedInstruments[i].type) {
+            case "drums":
+              inst = new DrumFacade(audioContext, loadedInstruments[i].track); //prettier-ignore
+              break;
+            case "synth":
+              inst = new SynthFacade(audioContext, loadedInstruments[i].track); //prettier-ignore
+              break;
+            default:
+              console.log("Something wrong happened");
+              throw Error;
+          }
+          if (loadedInstruments[i].notes.length > 0)
+            inst.setUpInstrument(loadedInstruments[i].notes);
+          else inst.setUpInstrument();
+          currInstruments.set(loadedInstruments[i].track, inst);
+        }
+        setInstruments(currInstruments);
+
+        const initialSections = new Map();
+
+        loadedSections.forEach((section) => {
+          initialSections.set(section.sectionId, section);
+        });
+        setSections(initialSections);
+        setLastBeatToPlay(data.lastBeatToPlay);
+        const initialTracks = [];
+
+        loadedTracks.forEach((track) => {
+          initialTracks.push(track);
+        });
+        setTracks(initialTracks);
+        const eq = [];
+        for (let i = 0; i < NUM_GRIDS; i++) {
+          eq.push([]);
+        }
+        initializeEventQueue(
+          eq,
+          initialTracks,
+          initialSections,
+          currInstruments
+        );
+        setLoading(false);
+      } catch (error) {
+        console.error("Error fetching instruments:", error);
+      }
+    };
+
+    console.log("Project ID", router.query.projectId);
+    fetchInstruments();
 
     const samples = async () => {
       const sample = await setupSample();
       setDtmf(sample);
     };
     samples();
-    //fetchInstruments();
-    // const ac = useAudioContext();
-    //setAudioContext(ac);
-    const s = new SynthFacade(audioContext, 1);
-    const s2 = new SynthFacade(audioContext, 2);
-    const d = new DrumFacade(audioContext, 3);
-
-    const i = instruments;
-    i.set(1, s);
-    i.set(2, s2);
-    i.set(3, d);
-
-    setInstruments(i);
-    const initialSections = new Map();
-    initialSections.set(1, {
-      sectionId: 1,
-      track: 1,
-      startTime: 0,
-      instrument: 1,
-      color: colors.blue,
-    });
-    initialSections.set(2, {
-      sectionId: 2,
-      track: 2,
-      startTime: 0,
-      instrument: 2,
-      color: colors.pink,
-    });
-    initialSections.set(3, {
-      sectionId: 3,
-      track: 3,
-      startTime: 0,
-      instrument: 3,
-      color: colors.yellow,
-    });
-    setSections(initialSections);
-    setLastBeatToPlay(64);
-    const initialTracks = [
-      { id: 1, volumn: 80, sections: [1], color: colors.blue },
-      { id: 2, volumn: 80, sections: [2], color: colors.pink },
-      { id: 3, volumn: 80, sections: [3], color: colors.yellow },
-    ];
-    setTracks(initialTracks);
-    const eq = [];
-    for (let i = 0; i < NUM_GRIDS; i++) {
-      eq.push([]);
-    }
-    //setEventQueue(eq);
-    initializeEventQueue(eq, initialTracks, initialSections, i);
-    //updateEventQueue();
-    setLoading(false);
   }, []);
 
   // useEffect(() => {
@@ -527,6 +526,7 @@ export default function Home() {
         {cellArray.map((index) => {
           return (
             <div
+              key={index}
               className={`${styles.gridCell} ${
                 selectedGridCell !== null &&
                 selectedGridCell.col === index &&
@@ -553,7 +553,10 @@ export default function Home() {
       <>
         {cellArray.map((index) => {
           return (
-            <div className={`${styles.gridCellMarker} ${getNotchStyle(index)}`}>
+            <div
+              key={index}
+              className={`${styles.gridCellMarker} ${getNotchStyle(index)}`}
+            >
               {index % 16 === 0 && index / 16 + (index % 16)}
             </div>
           );
@@ -750,7 +753,7 @@ export default function Home() {
             </div>
             {tracks.map((track, index) => {
               return (
-                <div className={styles.trackInfo}>
+                <div key={index} className={styles.trackInfo}>
                   <button
                     onClick={() => {
                       handleAddSectionClick(track);
@@ -815,6 +818,7 @@ export default function Home() {
             {tracks.map((track) => {
               return (
                 <div
+                  key={track.id}
                   className={styles.trackContainer}
                   style={{
                     display: "grid",
