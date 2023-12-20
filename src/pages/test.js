@@ -612,20 +612,29 @@ export default function Home() {
   const handleCloseTrackAdd = () => {
     setShowAddNewTrackOptions(false);
   };
-  const addTrack = (formData) => {
-    console.log(formData);
-    const trackId = tracks.length + 1;
-    const color = formData.color;
+  const createNewDrum = async (trackId, name) => {
+    const i = new DrumFacade(audioContext, trackId, name);
+    await i.setUpInstrument();
+    return i;
+  };
+  const createNewSynth = (trackId, name) => {
+    return new SynthFacade(audioContext, trackId, name);
+  };
 
+  const createNewInstrument = async (trackId, instrument, name) => {
     let newInstrument;
 
-    if (formData.instrument == "drums") {
-      newInstrument = new DrumFacade(audioContext, trackId);
-    } else if (formData.instrument == "synth") {
-      newInstrument = new SynthFacade(audioContext, trackId);
+    if (instrument == "drums") {
+      newInstrument = await createNewDrum(trackId, name);
+    } else if (instrument == "synth") {
+      newInstrument = createNewSynth(trackId, name);
     } else {
       throw Error;
     }
+    return newInstrument;
+  };
+
+  const addTrack = (trackId, newInstrument, color) => {
     const i = instruments;
     i.set(trackId, newInstrument);
     setInstruments(i);
@@ -652,7 +661,14 @@ export default function Home() {
   };
 
   const renderTrackOptions = () => {
-    return <AddTrackOptionsModule addTrack={addTrack} />;
+    return (
+      <AddTrackOptionsModule
+        addTrack={addTrack}
+        closeModule={handleCloseTrackAdd}
+        createNewInstrument={createNewInstrument}
+        currTrackLen={tracks.length}
+      />
+    );
   };
   return (
     <>
@@ -772,6 +788,7 @@ export default function Home() {
               <FontAwesomeIcon icon={faAdd}></FontAwesomeIcon>
             </button>
           </div>
+
           <div className={styles.gridContainer}>
             <div
               className={styles.timeBarContainer}

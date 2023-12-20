@@ -116,6 +116,9 @@ body {
 .gap-1 {
   gap: 1rem;
 }
+.gap-s {
+  gap: 0.1rem;
+}
 .t-center {
   text-align: center;
 }

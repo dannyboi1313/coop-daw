@@ -29,6 +29,9 @@ export default class DrumMachine {
       ...DrumMachine.PARAM_DEFAULTS,
       ...params,
     };
+  }
+
+  async loadSamples() {
     console.log("calling setup");
 
     const backGroundWork = async () => {

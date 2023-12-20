@@ -3,11 +3,18 @@ import InstrumentFacade from "./InstrumentFacade";
 
 export default class DrumFacade extends InstrumentFacade {
   type = "drum";
-  constructor(audioctx, id) {
+  constructor(audioctx, id, name = "Drums") {
     super(audioctx, id);
     console.log("Creating new drum machine.");
     this.drumMachine = new DrumMachine(audioctx);
-    this.name = "Drum " + id;
+    this.name = name;
+  }
+
+  async setUpInstrument(notes = null) {
+    if (notes) {
+      this.notes = notes;
+    }
+    await this.drumMachine.loadSamples();
   }
 
   updateEvents = (pads, size) => {

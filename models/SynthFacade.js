@@ -4,10 +4,10 @@ import InstrumentFacade from "./InstrumentFacade";
 
 export default class SynthFacade extends InstrumentFacade {
   type = "synth";
-  constructor(audioctx, id) {
+  constructor(audioctx, id, name = "Synth") {
     super(audioctx, id);
     this.synth = new Player(audioctx);
-    this.name = "Synth " + id;
+    this.name = name;
   }
 
   // updateEvents = (notes, size) => {
